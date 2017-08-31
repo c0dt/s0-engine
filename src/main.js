@@ -6,23 +6,22 @@ import fragmentShader from './shaders/sample.frag';
 export default class Main {
   constructor() {
     this._initPhysics();
-    let axis = new THREE.AxisHelper(1000);
-    axis.position.set(0, 10, 0);  
+    let axis = new THREE.AxisHelper(100);
+    axis.position.set(0, 1, 0);  
     
     this.scene = new THREE.Scene();
     this.scene.add(axis);
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 100000);
-    this.camera.position.x = 1000;
-    this.camera.position.y = 1000;
-    this.camera.position.z = 1000;
-
+    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+    this.camera.position.x = 374;
+    this.camera.position.y = 0;
+    this.camera.position.z = 0;
+    this.camera.up = new THREE.Vector3(0, 0, 1);
     this.camera.lookAt(new THREE.Vector3(0, 0, 0));
     // this.camera = new THREE.Camera();
     // this.camera.position.z = 1;
-    this.planeGeometry = new THREE.PlaneBufferGeometry(10000, 10000, 100, 100);
-    this.geometry = new THREE.SphereGeometry(100);
-    
-    this.material = new THREE.MeshBasicMaterial({ color: 0x0000ff, wireframe: true });
+    this.planeGeometry = new THREE.PlaneBufferGeometry(1200, 1200, 100, 100);
+    this.geometry = new THREE.SphereGeometry(32);
+    // this.material = new THREE.MeshBasicMaterial({ color: 0x0000cc, wireframe: true });
     this.uniforms = {
       time: {
         value: 1.0
@@ -37,10 +36,10 @@ export default class Main {
     //   vertexShader: vertexShader,
     //   fragmentShader: fragmentShader
     // });
-    let plane = new THREE.Mesh(this.planeGeometry, this.material);
+    let plane = new THREE.Mesh(this.planeGeometry, new THREE.MeshBasicMaterial({ color: 0x0000cc, wireframe: true }));
     this.scene.add(plane);
 
-    this.mesh = new THREE.Mesh(this.geometry, this.material);
+    this.mesh = new THREE.Mesh(this.geometry, new THREE.MeshBasicMaterial({ color: 0xcc0000, wireframe: true }));
 
     this.scene.add(this.mesh);
 
@@ -54,6 +53,10 @@ export default class Main {
     this.gui.add(this.camera.position, 'y', -5, 1000);
     this.gui.add(this.camera.position, 'z', -1000, 1000);
 
+    this.gui.add(this.camera.rotation, 'x', -Math.PI, Math.PI);
+    this.gui.add(this.camera.rotation, 'y', -Math.PI, Math.PI);
+    this.gui.add(this.camera.rotation, 'z', -Math.PI, Math.PI);
+
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
 
@@ -62,12 +65,12 @@ export default class Main {
   _initPhysics(){
         // Setup our world
     this.world = new CANNON.World();
-    this.world.gravity.set(0, 0, -98.2); // m/s²
+    this.world.gravity.set(0, 0, -9.82); // m/s²
     // Create a sphere
-    let radius = 100; // m
+    let radius = 32; // m
     this.sphereBody = new CANNON.Body({
       mass: 5, // kg
-      position: new CANNON.Vec3(0, 500, 1000), // m
+      position: new CANNON.Vec3(0, 50, 40), // m
       shape: new CANNON.Sphere(radius)
     });
     this.world.addBody(this.sphereBody);
@@ -84,7 +87,7 @@ export default class Main {
     this.maxSubSteps = 3;
     this.lastTime = undefined;
 
-    this.sphereBody.applyLocalImpulse(new CANNON.Vec3(-500, -500, 0), new CANNON.Vec3(100, 100, 100));
+    this.sphereBody.applyLocalImpulse(new CANNON.Vec3(-50, -50, 100), new CANNON.Vec3(100, 100, 100));
   }
 
   onWindowResize(event) {
