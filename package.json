@@ -1,5 +1,5 @@
 {
-  "name": "threejs-boilerplate",
+  "name": "S0.js",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -10,7 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "cannon": "^0.6.2",
-    "glm-js": "0.0.6-c"
+    "glm-js": "0.0.6-c",
+    "minimal-gltf-loader": "git+https://github.com/colintrinity/minimal-gltf-loader.git"
   },
   "devDependencies": {
     "babel-core": "^6.18.2",

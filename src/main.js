@@ -1,8 +1,19 @@
+import { vec3, vec4, quat, mat4 } from 'gl-matrix';
+import * as MinimalGLTFLoader from 'minimal-gltf-loader';
+
+
+
 export default class Main {
   constructor() {
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     window.requestAnimationFrame(this.animate.bind(this));
+
+    let url = 'https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Models/master/2.0/Monster/glTF/Monster.gltf';
+    let glTFLoader = new MinimalGLTFLoader.glTFLoader();
+    glTFLoader.loadGLTF(url, function(glTF){
+      console.log(glTF);
+    });
   }
 
   _initPhysics(){
