@@ -80,4 +80,17 @@ export default class Main {
   }
 }
 
-window.mainApp = new Main();
+Promise.all([
+  FBInstant.initializeAsync().then((r) => {
+    return Promise.resolve();
+  })
+]).then(() => {
+  window.mainApp = new Main();
+  return new Promise((resolve, inject) => {
+    // window.ServiceProxy.onReady = () => {
+    resolve();
+    // };
+  });
+}).then(() => {
+  return FBInstant.startGameAsync();
+});
