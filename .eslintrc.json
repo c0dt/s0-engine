@@ -21,7 +21,8 @@
     "CC_EDITOR": true,
     "CC_DEV": true,
     "CC_JSB": true,
-    "PlayFab": true
+    "PlayFab": true,
+    "dat": true
   },
   "plugins": [
     "private-props",
