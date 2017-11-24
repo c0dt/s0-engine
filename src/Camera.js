@@ -3,7 +3,7 @@ import { glm } from './glm';
 import glMatrixVec3Proxy from './helpers/glMatrixVec3Proxy';
 
 export default class Camera {
-  constructor(position = vec3.fromValues(0.0, 0.0, 0.0), up = vec3.fromValues(0.0, 1.0, 0.0), yaw = -90.0, pitch = 0.0) {
+  constructor({ position = vec3.fromValues(0.0, 0.0, 0.0), up = vec3.fromValues(0.0, 1.0, 0.0), yaw = -90.0, pitch = 0.0, roll = 0.0 }) {
     this._position = position;
     this._positionProxy = new glMatrixVec3Proxy(this._position);
     this.front = vec3.create();
@@ -14,6 +14,7 @@ export default class Camera {
 	// Eular Angles
     this.yaw = yaw;
     this.pitch = pitch;
+    this.roll = roll;
 	// Camera options
     this.movementSpeed;
     this.mouseSensitivity;
@@ -26,6 +27,8 @@ export default class Camera {
     f1.add(this.position, 'y').step(0.1);
     f1.add(this.position, 'z').step(0.1);
     f1.open();
+
+    Camera.current = this;
   }
 
   updateVectors() {

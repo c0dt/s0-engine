@@ -9,7 +9,7 @@ let definePlugin = new webpack.DefinePlugin({
 module.exports = {
   entry: {
     app: [
-      path.resolve(__dirname, 'src/Main')
+      path.resolve(__dirname, 'src/main')
     ],
     // vendor: ['pixi', 'webfontloader']
   },

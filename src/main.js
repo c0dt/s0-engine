@@ -11,9 +11,11 @@ import { ShaderStatic } from './Shader';
 import vs from './shaders/color.vs.glsl';
 import fs from './shaders/color.fs.glsl';
 
+import FlyController from './components/FlyController';
+
 const ATTRIBUTES = {
-  'NORMAL': 0,
-  'POSITION': 1
+  'POSITION': 0,
+  'NORMAL': 1,
   // 'TANGENT': 2,
   // 'TEXCOORD_0': 3,
   // 'TEXCOORD_1': 4,
@@ -41,6 +43,10 @@ export default class Main {
     }
 
     window.gl = gl;
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.LESS);
+    
+    this.flyController = new FlyController;
 
     this.colorGrogram = ShaderStatic.createProgram(gl, vs, fs);
     this.uniformMvpLocation = gl.getUniformLocation(this.colorGrogram, "u_MVP");
@@ -70,7 +76,8 @@ export default class Main {
           for (let key in primitive.attributes) {
             if (primitive.attributes.hasOwnProperty(key)) {
               let location = ATTRIBUTES[key];
-              if (location !== null){
+              if (location !== undefined){
+                console.log(`${key} at ${location}`);
                 this.setupAttribuite(primitive.attributes[key], ATTRIBUTES[key]);                
               }
             }
@@ -141,7 +148,6 @@ export default class Main {
         mat4.mul(MVP, this.projection, MVP);
         
         gl.uniformMatrix4fv(this.uniformMvpLocation, false, MVP);
-
         gl.bindVertexArray(primitive.vertexArray);
                 
         if (primitive.indices !== null) {
@@ -196,6 +202,8 @@ export default class Main {
     //   let dt = (dt - this.lastTime) / 1000;
     //   this.world.step(this.fixedTimeStep, dt, this.maxSubSteps);
     // }
+
+    this.flyController.update();
   }
 }
 

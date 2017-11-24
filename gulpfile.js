@@ -6,7 +6,7 @@ let path = require('path');
 let runSequence = require('run-sequence');
 
 gulp.task('bundle-debug', function() {
-  return gulp.src('src/Main')
+  return gulp.src('src/main')
     .pipe(webpack(require('./webpack.config.js')))
     .pipe(gulp.dest(path.resolve(__dirname, 'build/debug/js/')));
 });
