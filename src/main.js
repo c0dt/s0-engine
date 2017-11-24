@@ -23,7 +23,7 @@ const ATTRIBUTES = {
 
 export default class Main {
   constructor() {
-    console.time("MainInit");
+    console.time("[Init]");
     window.datGUI = new dat.GUI();
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
@@ -105,11 +105,15 @@ export default class Main {
       }
       window.requestAnimationFrame(this.animate.bind(this));
       
-      console.timeEnd("MainInit");
+      console.timeEnd("[Init]");
     });
     this.projection = mat4.create();
     mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
-    this.camera = new Camera(vec3.fromValues(0, 0, 10));
+    this.camera = new Camera({ 
+      position: vec3.fromValues(-60, 90, 90),
+      yaw: -90.0, 
+      pitch: -30.0 
+    });
     this.axis = new Axis;
   }
 
@@ -118,7 +122,7 @@ export default class Main {
       let accessor = attrib;
       let bufferView = accessor.bufferView;
       if (bufferView.target === null) {
-            // console.log('WARNING: the bufferview of this accessor should have a target, or it should represent non buffer data (like animation)');
+        // console.log('WARNING: the bufferview of this accessor should have a target, or it should represent non buffer data (like animation)');
         gl.bindBuffer(gl.ARRAY_BUFFER, bufferView.buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bufferView.data, gl.STATIC_DRAW);
       } else {
