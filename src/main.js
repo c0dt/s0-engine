@@ -24,8 +24,8 @@ const ATTRIBUTES = {
 export default class Main {
   constructor() {
     console.time("[Init]");
-    window.datGUI = new dat.GUI();
     this.onWindowResize();
+    window.datGUI = new dat.GUI();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
 
     let canvas = document.createElement('canvas');
@@ -45,19 +45,19 @@ export default class Main {
     window.gl = gl;
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
-    
+
     this.flyController = new FlyController;
 
     this.colorGrogram = ShaderStatic.createProgram(gl, vs, fs);
     this.uniformMvpLocation = gl.getUniformLocation(this.colorGrogram, "u_MVP");
 
-    canvas.oncontextmenu = function(e) {
+    canvas.oncontextmenu = function (e) {
       e.preventDefault();
     };
-
-    let url = 'models/ElvenRuins/ElvenRuins.gltf';
+    // let url = 'models/ElvenRuins/ElvenRuins.gltf';
+    let url = 'models/Miniscene/Miniscene.gltf';
     let glTFLoader = new MinimalGLTFLoader.glTFLoader();
-    glTFLoader.loadGLTF(url, (glTF)=>{
+    glTFLoader.loadGLTF(url, (glTF) => {
       console.log(glTF);
       let i = 0;
       let len = 0;
@@ -68,17 +68,17 @@ export default class Main {
       }
 
       let meshes = glTF.meshes;
-      for (let i = 0; i < meshes.length; i++){
+      for (let i = 0; i < meshes.length; i++) {
         let mesh = meshes[i];
-        mesh.primitives.forEach((primitive)=>{
+        mesh.primitives.forEach((primitive) => {
           primitive.vertexArray = gl.createVertexArray();
           gl.bindVertexArray(primitive.vertexArray);
           for (let key in primitive.attributes) {
             if (primitive.attributes.hasOwnProperty(key)) {
               let location = ATTRIBUTES[key];
-              if (location !== undefined){
+              if (location !== undefined) {
                 console.log(`${key} at ${location}`);
-                this.setupAttribuite(primitive.attributes[key], ATTRIBUTES[key]);                
+                this.setupAttribuite(primitive.attributes[key], ATTRIBUTES[key]);
               }
             }
           }
@@ -96,7 +96,7 @@ export default class Main {
           gl.bindVertexArray(null);
           gl.bindBuffer(gl.ARRAY_BUFFER, null);
           gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
-        });  
+        });
       }
       this.scene = glTF.scenes[0];
       this.nodeMatrix = new Array(glTF.nodes.length);
@@ -104,15 +104,16 @@ export default class Main {
         this.nodeMatrix[i] = mat4.create();
       }
       window.requestAnimationFrame(this.animate.bind(this));
-      
       console.timeEnd("[Init]");
     });
     this.projection = mat4.create();
     mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
-    this.camera = new Camera({ 
-      position: vec3.fromValues(-60, 90, 90),
-      yaw: -90.0, 
-      pitch: -30.0 
+    this.camera = new Camera({
+      // position: vec3.fromValues(-60, 90, 90),
+      position: vec3.fromValues(0, 0, 0),
+      yaw: -90.0,
+      // pitch: -30.0
+      pitch: 0
     });
     this.axis = new Axis;
   }
@@ -122,7 +123,6 @@ export default class Main {
       let accessor = attrib;
       let bufferView = accessor.bufferView;
       if (bufferView.target === null) {
-        // console.log('WARNING: the bufferview of this accessor should have a target, or it should represent non buffer data (like animation)');
         gl.bindBuffer(gl.ARRAY_BUFFER, bufferView.buffer);
         gl.bufferData(gl.ARRAY_BUFFER, bufferView.data, gl.STATIC_DRAW);
       } else {
@@ -134,36 +134,30 @@ export default class Main {
     return false;
   }
 
-  drawNode(node, nodeID, parentModelMatrix){
+  drawNode(node, nodeID, parentModelMatrix) {
     let matrix = this.nodeMatrix[nodeID];
-    
     if (parentModelMatrix !== undefined) {
       mat4.mul(matrix, parentModelMatrix, node.matrix);
     } else {
       mat4.copy(matrix, node.matrix);
     }
-    
     if (node.mesh && node.mesh.primitives) {
       let primitives = node.mesh.primitives;
-              
-      primitives.forEach(primitive=>{
+      primitives.forEach(primitive => {
         let MVP = mat4.create();
         mat4.mul(MVP, this.camera.view, matrix);
         mat4.mul(MVP, this.projection, MVP);
-        
         gl.uniformMatrix4fv(this.uniformMvpLocation, false, MVP);
         gl.bindVertexArray(primitive.vertexArray);
-                
         if (primitive.indices !== null) {
           gl.drawElements(primitive.mode, primitive.indicesLength, primitive.indicesComponentType, primitive.indicesOffset);
         } else {
           gl.drawArrays(primitive.mode, primitive.drawArraysOffset, primitive.drawArraysCount);
         }
-                
         gl.bindVertexArray(null);
       });
     }
-    
+
     if (node.children) {
       let length = node.children.length;
       for (let i = 0; i < length; i++) {
@@ -172,14 +166,12 @@ export default class Main {
     }
   }
 
-  _initPhysics(){
-  }
-
   onWindowResize(event) {
     // this.renderer.setSize(window.innerWidth, window.innerHeight);
     // this.uniforms.resolution.value.x = this.renderer.domElement.width;
     // this.uniforms.resolution.value.y = this.renderer.domElement.height;
   }
+
   animate(time) {
     window.requestAnimationFrame(this.animate.bind(this));
     this.render();
@@ -191,6 +183,7 @@ export default class Main {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
+
     this.axis.draw(this.camera.view, this.projection);
 
     gl.useProgram(this.colorGrogram);
@@ -201,7 +194,7 @@ export default class Main {
     }
   }
 
-  update(time){
+  update(time) {
     // if (this.lastTime !== undefined){
     //   let dt = (dt - this.lastTime) / 1000;
     //   this.world.step(this.fixedTimeStep, dt, this.maxSubSteps);
