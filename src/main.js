@@ -2,16 +2,17 @@ import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 import { glm } from './glm';
 import * as MinimalGLTFLoader from 'minimal-gltf-loader';
 import BoundingBox from './primitives/BoundingBox';
-import Axis from './primitives/Axis';
-import Camera from './Camera';
+
+
 import Quad from './primitives/Quad';
 
 import Texture from './Texture';
 import { ShaderStatic } from './Shader';
-import vs from './shaders/color.vs.glsl';
-import fs from './shaders/color.fs.glsl';
 
 import FlyController from './components/FlyController';
+
+
+import ForwardRenderer from './renderers/ForwardRenderer';
 
 const ATTRIBUTES = {
   'POSITION': 0,
@@ -24,9 +25,8 @@ const ATTRIBUTES = {
 export default class Main {
   constructor() {
     console.time("[Init]");
-    this.onWindowResize();
     window.datGUI = new dat.GUI();
-    window.addEventListener('resize', this.onWindowResize.bind(this), false);
+    
 
     let canvas = document.createElement('canvas');
     // canvas.width = Math.min(window.innerWidth, window.innerHeight);
@@ -43,19 +43,19 @@ export default class Main {
     }
 
     window.gl = gl;
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LESS);
+
+    this.renderer = new ForwardRenderer(canvas.width, canvas.height);
+    this.onWindowResize();
+    window.addEventListener('resize', this.onWindowResize.bind(this), false);
 
     this.flyController = new FlyController;
 
-    this.colorGrogram = ShaderStatic.createProgram(gl, vs, fs);
-    this.uniformMvpLocation = gl.getUniformLocation(this.colorGrogram, "u_MVP");
-
-    canvas.oncontextmenu = function (e) {
+    canvas.oncontextmenu = function(e) {
       e.preventDefault();
     };
-    // let url = 'models/ElvenRuins/ElvenRuins.gltf';
-    let url = 'models/Miniscene/Miniscene.gltf';
+    this.primitives = {};
+    let url = 'models/ElvenRuins/ElvenRuins.gltf';
+    // let url = 'models/Miniscene/Miniscene.gltf';
     let glTFLoader = new MinimalGLTFLoader.glTFLoader();
     glTFLoader.loadGLTF(url, (glTF) => {
       console.log(glTF);
@@ -71,6 +71,7 @@ export default class Main {
       for (let i = 0; i < meshes.length; i++) {
         let mesh = meshes[i];
         mesh.primitives.forEach((primitive) => {
+          this.primitives[primitive] = true;
           primitive.vertexArray = gl.createVertexArray();
           gl.bindVertexArray(primitive.vertexArray);
           for (let key in primitive.attributes) {
@@ -106,16 +107,6 @@ export default class Main {
       window.requestAnimationFrame(this.animate.bind(this));
       console.timeEnd("[Init]");
     });
-    this.projection = mat4.create();
-    mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
-    this.camera = new Camera({
-      // position: vec3.fromValues(-60, 90, 90),
-      position: vec3.fromValues(0, 0, 0),
-      yaw: -90.0,
-      // pitch: -30.0
-      pitch: 0
-    });
-    this.axis = new Axis;
   }
 
   setupAttribuite(attrib, location) {
@@ -134,72 +125,21 @@ export default class Main {
     return false;
   }
 
-  drawNode(node, nodeID, parentModelMatrix) {
-    let matrix = this.nodeMatrix[nodeID];
-    if (parentModelMatrix !== undefined) {
-      mat4.mul(matrix, parentModelMatrix, node.matrix);
-    } else {
-      mat4.copy(matrix, node.matrix);
-    }
-    if (node.mesh && node.mesh.primitives) {
-      let primitives = node.mesh.primitives;
-      primitives.forEach(primitive => {
-        let MVP = mat4.create();
-        mat4.mul(MVP, this.camera.view, matrix);
-        mat4.mul(MVP, this.projection, MVP);
-        gl.uniformMatrix4fv(this.uniformMvpLocation, false, MVP);
-        gl.bindVertexArray(primitive.vertexArray);
-        if (primitive.indices !== null) {
-          gl.drawElements(primitive.mode, primitive.indicesLength, primitive.indicesComponentType, primitive.indicesOffset);
-        } else {
-          gl.drawArrays(primitive.mode, primitive.drawArraysOffset, primitive.drawArraysCount);
-        }
-        gl.bindVertexArray(null);
-      });
-    }
-
-    if (node.children) {
-      let length = node.children.length;
-      for (let i = 0; i < length; i++) {
-        this.drawNode(node.children[i], node.children[i].nodeID, matrix);
-      }
-    }
-  }
-
   onWindowResize(event) {
-    // this.renderer.setSize(window.innerWidth, window.innerHeight);
-    // this.uniforms.resolution.value.x = this.renderer.domElement.width;
-    // this.uniforms.resolution.value.y = this.renderer.domElement.height;
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
   animate(time) {
     window.requestAnimationFrame(this.animate.bind(this));
     this.render();
     this.update(time);
-    // this.uniforms.time.value += 0.05;
   }
 
   render() {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.CULL_FACE);
-
-    this.axis.draw(this.camera.view, this.projection);
-
-    gl.useProgram(this.colorGrogram);
-
-    let length = this.scene.nodes.length;
-    for (let i = 0; i < length; i++) {
-      this.drawNode(this.scene.nodes[i], this.scene.nodes[i].nodeID, this.scene.rootTransform);
-    }
+    this.renderer.render(this.scene);
   }
 
   update(time) {
-    // if (this.lastTime !== undefined){
-    //   let dt = (dt - this.lastTime) / 1000;
-    //   this.world.step(this.fixedTimeStep, dt, this.maxSubSteps);
-    // }
-
     this.flyController.update();
   }
 }
