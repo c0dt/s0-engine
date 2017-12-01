@@ -25,7 +25,7 @@ gulp.task('resources-debug', function() {
 gulp.task('browser-sync', function() {
   browserSync.init({
     host: process.env.IP || 'localhost',
-    port: process.env.PORT || 3000,
+    port: process.env.PORT || 5000,
     server: {
       baseDir: ['./build/debug/']
     },

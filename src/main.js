@@ -7,7 +7,7 @@ import BoundingBox from './primitives/BoundingBox';
 import Quad from './primitives/Quad';
 
 import Texture from './Texture';
-import { ShaderStatic } from './Shader';
+import Shader, { ShaderStatic } from './Shader';
 
 import FlyController from './components/FlyController';
 
@@ -18,7 +18,7 @@ const ATTRIBUTES = {
   'POSITION': 0,
   'NORMAL': 1,
   // 'TANGENT': 2,
-  // 'TEXCOORD_0': 3,
+  'TEXCOORD_0': 2,
   // 'TEXCOORD_1': 4,
 };
 
@@ -54,11 +54,12 @@ export default class Main {
       e.preventDefault();
     };
     this.primitives = {};
-    let url = 'models/ElvenRuins/ElvenRuins.gltf';
-    // let url = 'models/Miniscene/Miniscene.gltf';
+    // let url = 'models/YippyKawaii/Miniscene/Miniscene.gltf';
+    let url = 'models/SimpleTownLite/road_square_mesh_out/road_square_mesh.gltf';
     let glTFLoader = new MinimalGLTFLoader.glTFLoader();
     glTFLoader.loadGLTF(url, (glTF) => {
       console.log(glTF);
+      this.glTF = glTF;
       let i = 0;
       let len = 0;
       for (i = 0, len = glTF.bufferViews.length; i < len; i++) {
@@ -71,7 +72,7 @@ export default class Main {
       for (let i = 0; i < meshes.length; i++) {
         let mesh = meshes[i];
         mesh.primitives.forEach((primitive) => {
-          this.primitives[primitive] = true;
+          primitive.shader = new Shader();
           primitive.vertexArray = gl.createVertexArray();
           gl.bindVertexArray(primitive.vertexArray);
           for (let key in primitive.attributes) {
@@ -136,12 +137,20 @@ export default class Main {
   }
 
   render() {
-    this.renderer.render(this.scene);
+    this.renderer.render(this.scene, this.glTF.textures);
   }
 
   update(time) {
     this.flyController.update();
   }
 }
-
+// Promise.all([
+//   FBInstant.initializeAsync().then(function(r) {
+//     return Promise.resolve();
+//   })
+// ]).then(() => {
 window.mainApp = new Main();
+//   Promise.resolve();
+// }).then(function() {
+//   return FBInstant.startGameAsync();
+// });

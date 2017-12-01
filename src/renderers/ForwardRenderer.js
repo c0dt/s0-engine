@@ -32,6 +32,12 @@ export default class ForwardRenderer {
     });
 
     this.primitives = [];
+
+    this.defaultSampler = gl.createSampler();
+    gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
+    gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_S, gl.REPEAT);
+    gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_T, gl.REPEAT);
   }
 
   setSize(width, height) {
@@ -39,10 +45,41 @@ export default class ForwardRenderer {
   }
 
   activeAndBindTexture(uniformLocation, textureInfo) {
+    gl.uniform1i(uniformLocation, textureInfo.index);
+    gl.activeTexture(gl.TEXTURE0 + textureInfo.index);
+    let texture = this.textures[ textureInfo.index ];
+    if (!texture.texture){
+      texture.texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+      gl.texImage2D(
+        gl.TEXTURE_2D,  // assumed
+        0,        // Level of details
+        // gl.RG16F, // Format
+        // gl.RG,
+        gl.RGBA, // Format
+        gl.RGBA,
+        gl.UNSIGNED_BYTE, // Size of each channel
+        // gl.FLOAT,
+        texture.source
+      );
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    } else {
+      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+    }
 
+    let sampler;
+    if (texture.sampler) {
+      sampler = texture.sampler.sampler;
+    } else {
+      sampler = this.defaultSampler;
+    }
+
+    gl.bindSampler(textureInfo.index, sampler);
   }
 
-  render(scene) {
+  render(scene, textures) {
+    this.textures = textures;
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
@@ -70,13 +107,17 @@ export default class ForwardRenderer {
     let MVP = mat4.create();
     mat4.mul(MVP, this.camera.view, matrix);
     mat4.mul(MVP, this.projection, MVP);
-    gl.uniformMatrix4fv(this.uniformMvpLocation, false, MVP);
-    if (this.lastVertexArray !== primitive.vertexArray){
-      gl.bindVertexArray(primitive.vertexArray);
-      this.lastVertexArray = primitive.vertexArray;
-    } else {
-      console.log("OK");
+    if (primitive.material) {
+      // if (this.program !== primitive.shader.programObject) {
+      //   this.program = primitive.shader.programObject;
+      //   gl.useProgram(this.program.program);
+      // }
+      // if (primitive.shader.hasBaseColorMap()) {
+      this.activeAndBindTexture(gl.getUniformLocation(this.colorGrogram, "albedo"), primitive.material.pbrMetallicRoughness.baseColorTexture);
+      // }
     }
+    gl.uniformMatrix4fv(this.uniformMvpLocation, false, MVP);
+    gl.bindVertexArray(primitive.vertexArray);
     if (primitive.indices !== null) {
       gl.drawElements(primitive.mode, primitive.indicesLength, primitive.indicesComponentType, primitive.indicesOffset);
     } else {
