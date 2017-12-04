@@ -55,7 +55,7 @@ export default class Main {
     };
     this.primitives = {};
     // let url = 'models/YippyKawaii/Miniscene/Miniscene.gltf';
-    let url = 'models/SimpleTownLite/road_square_mesh_out/road_square_mesh.gltf';
+    let url = 'models/SimpleTownLite/pizza_car_seperate/pizza_car_seperate.gltf';
     let glTFLoader = new MinimalGLTFLoader.glTFLoader();
     glTFLoader.loadGLTF(url, (glTF) => {
       console.log(glTF);

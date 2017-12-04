@@ -112,9 +112,9 @@ export default class ForwardRenderer {
       //   this.program = primitive.shader.programObject;
       //   gl.useProgram(this.program.program);
       // }
-      // if (primitive.shader.hasBaseColorMap()) {
-      this.activeAndBindTexture(gl.getUniformLocation(this.colorGrogram, "albedo"), primitive.material.pbrMetallicRoughness.baseColorTexture);
-      // }
+      if (primitive.material.pbrMetallicRoughness.baseColorTexture) {
+        this.activeAndBindTexture(gl.getUniformLocation(this.colorGrogram, "albedo"), primitive.material.pbrMetallicRoughness.baseColorTexture);
+      }
     }
     gl.uniformMatrix4fv(this.uniformMvpLocation, false, MVP);
     gl.bindVertexArray(primitive.vertexArray);

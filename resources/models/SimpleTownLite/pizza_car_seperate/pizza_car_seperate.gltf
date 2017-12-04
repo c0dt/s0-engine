@@ -332,14 +332,31 @@
             "byteOffset": 0
         }
     ],
+    "images": [
+        {
+            "name": "STL_Vehicle_PizzaCar",
+            "uri": "STL_Vehicle_PizzaCar.png"
+        }
+    ],
     "samplers": [
         {}
     ],
+    "textures": [
+        {
+            "name": "Road_3",
+            "sampler": 0,
+            "source": 0
+        }
+    ],
     "materials": [
         {
-            "name": "lambert1",
+            "name": "pizza_car_seperate",
             "alphaMode": "OPAQUE",
             "pbrMetallicRoughness": {
+                "baseColorTexture": {
+                    "index": 0,
+                    "texCoord": 0
+                },
                 "baseColorFactor": [
                     0.400000005960464,
                     0.400000005960464,
