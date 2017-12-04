@@ -10,7 +10,7 @@ import Texture from './Texture';
 import Shader, { ShaderStatic } from './Shader';
 
 import FlyController from './components/FlyController';
-
+import MouseController from './components/MouseController';
 
 import ForwardRenderer from './renderers/ForwardRenderer';
 
@@ -29,6 +29,7 @@ export default class Main {
     
 
     let canvas = document.createElement('canvas');
+    window.GameCanvas = canvas;
     // canvas.width = Math.min(window.innerWidth, window.innerHeight);
     // canvas.height = canvas.width;
     canvas.width = window.innerWidth;
@@ -49,6 +50,7 @@ export default class Main {
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
 
     this.flyController = new FlyController;
+    this.mouseController = new MouseController;
 
     canvas.oncontextmenu = function(e) {
       e.preventDefault();
@@ -142,6 +144,7 @@ export default class Main {
 
   update(time) {
     this.flyController.update();
+    this.mouseController.update();
   }
 }
 // Promise.all([
