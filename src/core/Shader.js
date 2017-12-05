@@ -14,9 +14,6 @@ export const ShaderStatic = {
     HAS_EMISSIVEMAP: 1 << 6
   },
 
-  vsMasterCode: require('./shaders/pbr-master.vs.glsl'),
-  fsMasterCode: require('./shaders/pbr-master.fs.glsl'),
-
   programObjects: {},    // < flags, Shader Object >
 
   getShaderSource(id) {

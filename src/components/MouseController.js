@@ -14,7 +14,6 @@ export default class MouseController{
   }
 
   _handlePointerDown(evt){
-    console.log(evt);
     document.addEventListener("pointermove", this._handlePointerMove, false);
     document.addEventListener("pointerup", this._handlePointerUp, false);
     document.addEventListener("pointerleave", this._handlePointerUp, false);
@@ -27,17 +26,18 @@ export default class MouseController{
   }
 
   _handlePointerMove(evt){
-    if (this._touches[evt.pointerId]){
+    if (this._pointers[evt.pointerId]){
       let pointer = this._pointers[evt.pointerId];
       pointer.dX = evt.offsetX - pointer.x;
       pointer.dY = evt.offsetX - pointer.y;
       pointer.x = evt.offsetX;
       pointer.y = evt.offsetY;
+
+      console.log(pointer);
     }
   }
 
   _handlePointerUp(evt){
-    console.log("_handlePointerUp");
     document.removeEventListener("pointerup", this._handlePointerUp, false);
     document.removeEventListener("pointerleave", this._handlePointerUp, false);
     document.removeEventListener("pointermove", this._handlePointerMove, false);

@@ -1,5 +1,5 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-import { ShaderStatic } from '../Shader';
+import { ShaderStatic } from '../core/Shader';
 import vs from '../shaders/quad.vs.glsl';
 import fs from '../shaders/quad.fs.glsl';
 

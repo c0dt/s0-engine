@@ -1,5 +1,5 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-import { ShaderStatic } from '../Shader';
+import { ShaderStatic } from '../core/Shader';
 import vsBBOX from '../shaders/axis.vs.glsl';
 import fsBBOX from '../shaders/axis.fs.glsl';
 
@@ -42,7 +42,6 @@ export default class Axis{
 
 
   draw(V, P) {
-    
     let MVP = mat4.create();
     gl.useProgram(this.program);
     mat4.mul(MVP, V, MVP);

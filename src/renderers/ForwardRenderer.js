@@ -1,6 +1,6 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 import { glm } from '../glm';
-import { ShaderStatic } from '../Shader';
+import { ShaderStatic } from '../core/Shader';
 import Axis from '../primitives/Axis';
 
 import Camera from '../Camera';
@@ -23,13 +23,13 @@ export default class ForwardRenderer {
     this.projection = mat4.create();
 
     mat4.perspective(this.projection, glm.radians(45.0), width / height, 0.1, 100000.0);
-    this.camera = new Camera({
-      // position: vec3.fromValues(-60, 90, 90),
-      position: vec3.fromValues(0, 0.1, 0.5),
-      yaw: -90.0,
-      // pitch: -30.0
-      pitch: 0
-    });
+    // this.camera = new Camera({
+    //   // position: vec3.fromValues(-60, 90, 90),
+    //   position: vec3.fromValues(0, 0.1, 0.5),
+    //   yaw: -90.0,
+    //   // pitch: -30.0
+    //   pitch: 0
+    // });
 
     this.primitives = [];
 
@@ -52,14 +52,11 @@ export default class ForwardRenderer {
       texture.texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture.texture);
       gl.texImage2D(
-        gl.TEXTURE_2D,  // assumed
-        0,        // Level of details
-        // gl.RG16F, // Format
-        // gl.RG,
-        gl.RGBA, // Format
+        gl.TEXTURE_2D,
+        0,
         gl.RGBA,
-        gl.UNSIGNED_BYTE, // Size of each channel
-        // gl.FLOAT,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
         texture.source
       );
       gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -78,27 +75,18 @@ export default class ForwardRenderer {
     gl.bindSampler(textureInfo.index, sampler);
   }
 
-  render(scene, textures) {
-    this.textures = textures;
+  render(scene, camera) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
-    this.axis.draw(this.camera.view, this.projection);
+
+    this.axis.draw(camera.view, this.projection);
     gl.useProgram(this.colorGrogram);
 
     if (this.primitives.length) {
       for (let i = 0; i < this.primitives.length; i++){
         let item = this.primitives[i];
         this.drawPrimitive(item.primitive, item.matrix);
-      }
-    } else {
-      let length = scene.nodes.length;
-      for (let i = 0; i < length; i++) {
-        this.drawNode(scene.nodes[i], scene.nodes[i].nodeID, scene.rootTransform);
-
-        this.primitives.sort((a, b)=>{
-          return a.primitive.vertexArray - b.primitive.vertexArray;
-        });
       }
     }
   }
@@ -108,10 +96,6 @@ export default class ForwardRenderer {
     mat4.mul(MVP, this.camera.view, matrix);
     mat4.mul(MVP, this.projection, MVP);
     if (primitive.material) {
-      // if (this.program !== primitive.shader.programObject) {
-      //   this.program = primitive.shader.programObject;
-      //   gl.useProgram(this.program.program);
-      // }
       if (primitive.material.pbrMetallicRoughness.baseColorTexture) {
         this.activeAndBindTexture(gl.getUniformLocation(this.colorGrogram, "albedo"), primitive.material.pbrMetallicRoughness.baseColorTexture);
       }

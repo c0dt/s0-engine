@@ -1,0 +1,13 @@
+import { vec3, vec4, quat, mat4 } from 'gl-matrix';
+
+export default class Node{
+  constructor({ name, translation, rotation, scale }) {
+    this._name = name;
+    this._translation = vec3.fromValues(translation[0], translation[1], translation[2]);
+    this._rotation = quat.fromValues(rotation[0], rotation[1], rotation[2], rotation[3]);
+    this._scale = vec3.fromValues(scale[0], scale[1], scale[2]);
+    this._localMatrix = mat4.fromRotationTranslationScale(mat4.create(), this._rotation, this._translation, this._scale);
+    this._worldMatrix = undefined;
+    this._children = [];
+  }
+}
