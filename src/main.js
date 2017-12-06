@@ -6,8 +6,6 @@ import BoundingBox from './primitives/BoundingBox';
 
 import Quad from './primitives/Quad';
 
-import Texture from './Texture';
-
 import FlyController from './components/FlyController';
 import MouseController from './components/MouseController';
 
@@ -55,12 +53,12 @@ export default class Main {
     this.mouseController = new MouseController;
 
     this.primitives = {};
-    let url = 'models/SimpleTownLite/pizza_car_seperate/pizza_car_seperate.gltf';
-    let img = new ImageAsset({ url: 'models/SimpleTownLite/pizza_car_seperate/STL_Vehicle_PizzaCar.png' });
-    img.loadAsync();
+    // let url = 'models/SimpleTownLite/pizza_car_seperate/pizza_car_seperate.gltf';
+    let url = 'models/YippyKawaii/Cat/Cat.gltf';
     let asset = new GLTFAsset({ url: url });
     asset.loadAsync().then(
-      ()=>{
+      (asset) => {
+        console.log(asset);
         window.requestAnimationFrame(this.animate.bind(this));
       }
     );

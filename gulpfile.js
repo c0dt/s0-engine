@@ -30,7 +30,7 @@ gulp.task('browser-sync', function() {
       baseDir: ['./build/debug/']
     },
     open: false,
-    // https: true
+    https: true
   }, browserSyncReuseTab);
 
   gulp.watch('./build/debug/**/*').on('change', browserSync.reload);

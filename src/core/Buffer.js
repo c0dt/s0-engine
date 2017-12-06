@@ -1,5 +1,6 @@
 export default class Buffer {
-  constructor() {
-        
+  constructor({ byteLength, uri }) {
+    this._byteLength = byteLength;
+    this._uri = uri;
   }
 }

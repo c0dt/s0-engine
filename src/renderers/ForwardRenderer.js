@@ -31,24 +31,26 @@ export default class ForwardRenderer {
     //   pitch: 0
     // });
 
-    this.primitives = [];
-
     this.defaultSampler = gl.createSampler();
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+    this._primitives = [];
   }
 
   setSize(width, height) {
-    
+    this._viewWith = width;
+    this._viewHeight = height;
+    gl.viewport(0, 0, width, height);
   }
 
   activeAndBindTexture(uniformLocation, textureInfo) {
     gl.uniform1i(uniformLocation, textureInfo.index);
     gl.activeTexture(gl.TEXTURE0 + textureInfo.index);
     let texture = this.textures[ textureInfo.index ];
-    if (!texture.texture){
+    if (!texture.texture) {
       texture.texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture.texture);
       gl.texImage2D(
@@ -80,59 +82,14 @@ export default class ForwardRenderer {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
 
-    this.axis.draw(camera.view, this.projection);
-    gl.useProgram(this.colorGrogram);
-
     if (this.primitives.length) {
-      for (let i = 0; i < this.primitives.length; i++){
-        let item = this.primitives[i];
-        this.drawPrimitive(item.primitive, item.matrix);
+      for (let i = 0; i < this.primitives.length; i++) {
+        this._render(this._primitives[i]);
       }
     }
   }
 
-  drawPrimitive(primitive, matrix) {
-    let MVP = mat4.create();
-    mat4.mul(MVP, this.camera.view, matrix);
-    mat4.mul(MVP, this.projection, MVP);
-    if (primitive.material) {
-      if (primitive.material.pbrMetallicRoughness.baseColorTexture) {
-        this.activeAndBindTexture(gl.getUniformLocation(this.colorGrogram, "albedo"), primitive.material.pbrMetallicRoughness.baseColorTexture);
-      }
-    }
-    gl.uniformMatrix4fv(this.uniformMvpLocation, false, MVP);
-    gl.bindVertexArray(primitive.vertexArray);
-    if (primitive.indices !== null) {
-      gl.drawElements(primitive.mode, primitive.indicesLength, primitive.indicesComponentType, primitive.indicesOffset);
-    } else {
-      gl.drawArrays(primitive.mode, primitive.drawArraysOffset, primitive.drawArraysCount);
-    }
-    gl.bindVertexArray(null);
-  }
-
-  drawNode(node, nodeID, parentModelMatrix) {
-    let matrix = mat4.create();
-    if (parentModelMatrix !== undefined) {
-      mat4.mul(matrix, parentModelMatrix, node.matrix);
-    } else {
-      mat4.copy(matrix, node.matrix);
-    }
-    if (node.mesh && node.mesh.primitives) {
-      let primitives = node.mesh.primitives;
-      primitives.forEach(primitive => {
-        this.drawPrimitive(primitive, matrix);
-        this.primitives.push({
-          primitive: primitive,
-          matrix: matrix
-        });
-      });
-    }
-
-    if (node.children) {
-      let length = node.children.length;
-      for (let i = 0; i < length; i++) {
-        this.drawNode(node.children[i], node.children[i].nodeID, matrix);
-      }
-    }
+  _render(primitive) {
+    
   }
 }

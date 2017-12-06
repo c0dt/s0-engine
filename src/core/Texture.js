@@ -1,17 +1,8 @@
-import { EventEmitter } from "events";
-
-export default class Texture extends EventEmitter{
-  constructor(url) {
-    super();
-    this.rawImage = new Image();
-    this.rawImage.crossOrigin = "Anonymous";
-    this.rawImage.src = url;
-    this.rawImage.onload = this._onload.bind(this);
-  }
-
-  _onload(event) {
-    this.createTexture(event.target);
-    this.emit('loaded');
+export default class Texture {
+  constructor({ name, sampler, source }) {
+    this._name = name;
+    this.sampler = sampler;
+    this._source = source;
   }
 
   createTexture(img) {

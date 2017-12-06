@@ -14,33 +14,23 @@
     "es6": true
   },
   "globals": {
-    "cc": true,
-    "_ccsg": true,
-    "dragonBones": true,
-    "gl": true,
-    "CC_EDITOR": true,
-    "CC_DEV": true,
-    "CC_JSB": true,
-    "PlayFab": true,
-    "dat": true
+    "gl": true
   },
   "plugins": [
     "private-props",
     "import"
   ],
   "rules": {
+    "arrow-parens": "error",
+    "arrow-spacing": "error",
     "brace-style": "error",
     "comma-spacing": "error",
     "eqeqeq": "error",
     "func-call-spacing": "error",
     "indent": ["error", 2, {
       "MemberExpression": 1,
-      "SwitchCase": 1,
-      "VariableDeclarator": {
-        "var": 2,
-        "let": 2,
-        "const": 3
-      }
+      "SwitchCase" : 1,
+      "VariableDeclarator": { "var": 2, "let": 2, "const": 3 }
     }],
     "key-spacing": "error",
     "keyword-spacing": "error",
@@ -48,6 +38,7 @@
     "no-extra-parens": "error",
     "no-extra-semi": "error",
     "no-multi-spaces": "error",
+    "no-multiple-empty-lines": "error",
     "no-unused-vars": ["error", {
       "args": "none"
     }],
@@ -57,6 +48,7 @@
     "object-shorthand": ["error", "methods"],
     "semi": ["error", "always"],
     "semi-spacing": "error",
+    "space-before-blocks": "error",
     "space-before-function-paren": ["error", "never"],
     "space-in-parens": "error",
     "space-infix-ops": "error",
@@ -68,6 +60,8 @@
     "max-params": [1, 4],
     "max-statements": [1, 60],
     "no-underscore-dangle": 0,
+
+    "import/default": "off",
 
     "private-props/no-use-outside": [2, {
       "privateMatchers": [
