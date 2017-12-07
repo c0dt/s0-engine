@@ -1,12 +1,12 @@
-import Asset from './Asset';
+import Loader from '../Loader';
 
-export default class ImageAsset extends Asset{
+export default class ImageLoader extends Loader {
     
   loadAsync() {
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
       let img = new Image();
       img.crossOrigin = "Anonymous";
-      img.src = this._url;
+      img.src = this.url;
       img.onload = (evt) => {
         resolve(evt);
         console.log(evt);

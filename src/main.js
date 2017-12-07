@@ -10,8 +10,10 @@ import FlyController from './components/FlyController';
 import MouseController from './components/MouseController';
 
 import ForwardRenderer from './renderers/ForwardRenderer';
-import GLTFAsset from './assets/GLTFAsset';
-import ImageAsset from './assets/ImageAsset';
+
+import ResoucePipeline from './resources/ResourcePipeline';
+
+import Camera from './Camera';
 
 const ATTRIBUTES = {
   'POSITION': 0,
@@ -52,13 +54,23 @@ export default class Main {
     this.flyController = new FlyController;
     this.mouseController = new MouseController;
 
+    this.projection = mat4.create();
+    mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
+
+    this._camera = new Camera(this.projection, {
+      // position: vec3.fromValues(-60, 90, 90),
+      position: vec3.fromValues(0, 0.1, 0.5),
+      yaw: -90.0,
+      // pitch: -30.0
+      pitch: 0
+    });
+
     this.primitives = {};
-    // let url = 'models/SimpleTownLite/pizza_car_seperate/pizza_car_seperate.gltf';
-    let url = 'models/YippyKawaii/Cat/Cat.gltf';
-    let asset = new GLTFAsset({ url: url });
-    asset.loadAsync().then(
+    let url = 'models/SimpleTownLite/pizza_car_seperate/pizza_car_seperate.gltf';
+    // let url = 'animations/YippyKawaii/Anim@ATK1/Anim@ATK1.gltf';
+    ResoucePipeline.loadAsync(url, {}).then(
       (asset) => {
-        console.log(asset);
+        this._scene = asset;
         window.requestAnimationFrame(this.animate.bind(this));
       }
     );
@@ -75,7 +87,7 @@ export default class Main {
   }
 
   render() {
-    // this.renderer.render(this.scene, this.glTF.textures);
+    this.renderer.render(this._scene, this._camera);
   }
 
   update(time) {

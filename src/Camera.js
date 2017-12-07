@@ -3,7 +3,13 @@ import { glm } from './glm';
 import glMatrixVec3Proxy from './helpers/glMatrixVec3Proxy';
 
 export default class Camera {
-  constructor({ position = vec3.fromValues(0.0, 0.0, 0.0), up = vec3.fromValues(0.0, 1.0, 0.0), yaw = -90.0, pitch = 0.0, roll = 0.0 }) {
+  constructor(projection, { position = vec3.fromValues(0.0, 0.0, 0.0), 
+                up = vec3.fromValues(0.0, 1.0, 0.0), 
+                yaw = -90.0, 
+                pitch = 0.0, 
+                roll = 0.0 }) {
+
+    this._projection = projection;
     this._position = position;
     this._positionProxy = new glMatrixVec3Proxy(this._position);
     this.front = vec3.create();

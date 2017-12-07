@@ -10,27 +10,9 @@ import fs from '../shaders/color.fs.glsl';
 
 export default class ForwardRenderer {
   constructor(width, height) {
-    let defaultColor = [1.0, 1.0, 1.0, 1.0];
-
-    this.axis = new Axis;
-
+    this.setSize(width, height);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
-
-    this.colorGrogram = ShaderStatic.createProgram(gl, vs, fs);
-    this.uniformMvpLocation = gl.getUniformLocation(this.colorGrogram, "u_MVP");
-
-    this.projection = mat4.create();
-
-    mat4.perspective(this.projection, glm.radians(45.0), width / height, 0.1, 100000.0);
-    // this.camera = new Camera({
-    //   // position: vec3.fromValues(-60, 90, 90),
-    //   position: vec3.fromValues(0, 0.1, 0.5),
-    //   yaw: -90.0,
-    //   // pitch: -30.0
-    //   pitch: 0
-    // });
-
     this.defaultSampler = gl.createSampler();
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -66,30 +48,51 @@ export default class ForwardRenderer {
     } else {
       gl.bindTexture(gl.TEXTURE_2D, texture.texture);
     }
-
     let sampler;
     if (texture.sampler) {
       sampler = texture.sampler.sampler;
     } else {
       sampler = this.defaultSampler;
     }
-
     gl.bindSampler(textureInfo.index, sampler);
   }
 
   render(scene, camera) {
+    let length = this._primitives.length;
+    
+    if (length === 0) {
+      let root = scene.root;
+      this._visitNode(root);
+    }
+
+
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
 
-    if (this.primitives.length) {
-      for (let i = 0; i < this.primitives.length; i++) {
+    
+    if (length) {
+      for (let i = 0; i < length; i++) {
         this._render(this._primitives[i]);
       }
     }
   }
 
-  _render(primitive) {
+  _visitNode(node) {
+    if (node.mesh) {
+      node.mesh.primitives.forEach((primitive) => {
+        this._primitives.push({ primitive: primitive, worldMatrix: node.worldMatrix });
+      });
+    }
     
+    if (node.children) {
+      node.children.forEach((child) => {
+        this._visitNode(child);
+      });
+    }
+  }
+
+  _render(primitive) {
+    primitive.primitive.draw(this);
   }
 }
