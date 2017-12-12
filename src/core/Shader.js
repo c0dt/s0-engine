@@ -1,6 +1,6 @@
-export const ShaderStatic = {
+export const ShaderManager = {
   shaderVersionLine: '#version 300 es\n',
-    
+
   bitMasks: {
     // vertex shader
     HAS_SKIN: 1 << 0,
@@ -14,11 +14,7 @@ export const ShaderStatic = {
     HAS_EMISSIVEMAP: 1 << 6
   },
 
-  programObjects: {},    // < flags, Shader Object >
-
-  getShaderSource(id) {
-    return document.getElementById(id).textContent.replace(/^\s+|\s+$/g, '');
-  },
+  programObjects: {},
 
   createShader(gl, source, type) {
     let shader = gl.createShader(type);
@@ -29,8 +25,8 @@ export const ShaderStatic = {
 
   createProgram(gl, vertexShaderSource, fragmentShaderSource) {
     let program = gl.createProgram();
-    let vshader = ShaderStatic.createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
-    let fshader = ShaderStatic.createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+    let vshader = ShaderManager.createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
+    let fshader = ShaderManager.createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
     gl.attachShader(program, vshader);
     gl.deleteShader(vshader);
     gl.attachShader(program, fshader);
@@ -41,17 +37,14 @@ export const ShaderStatic = {
     if (log) {
       console.log(log);
     }
-
     log = gl.getShaderInfoLog(vshader);
     if (log) {
       console.log(log);
     }
-
     log = gl.getShaderInfoLog(fshader);
     if (log) {
       console.log(log);
     }
-
     return program;
   }
 };
@@ -63,37 +56,41 @@ export default class Shader {
   }
 
   hasSkin() {
-    return this.flags & ShaderStatic.bitMasks.HAS_SKIN;
+    return this.flags & ShaderManager.bitMasks.HAS_SKIN;
+  }
+
+  hasSkinVec8() {
+    return this.flags & ShaderManager.bitMasks.SKIN_VEC8;
   }
 
   hasBaseColorMap() {
-    return this.flags & ShaderStatic.bitMasks.HAS_BASECOLORMAP;
+    return this.flags & ShaderManager.bitMasks.HAS_BASECOLORMAP;
   }
 
   hasNormalMap() {
-    return this.flags & ShaderStatic.bitMasks.HAS_NORMALMAP;
+    return this.flags & ShaderManager.bitMasks.HAS_NORMALMAP;
   }
   hasMetalRoughnessMap() {
-    return this.flags & ShaderStatic.bitMasks.HAS_METALROUGHNESSMAP;
+    return this.flags & ShaderManager.bitMasks.HAS_METALROUGHNESSMAP;
   }
   hasOcclusionMap() {
-    return this.flags & ShaderStatic.bitMasks.HAS_OCCLUSIONMAP;
+    return this.flags & ShaderManager.bitMasks.HAS_OCCLUSIONMAP;
   }
   hasEmissiveMap() {
-    return this.flags & ShaderStatic.bitMasks.HAS_EMISSIVEMAP;
+    return this.flags & ShaderManager.bitMasks.HAS_EMISSIVEMAP;
   }
 
 
   defineMacro(macro) {
-    if (ShaderStatic.bitMasks[macro] !== undefined) {
-      this.flags = ShaderStatic.bitMasks[macro] | this.flags;
+    if (ShaderManager.bitMasks[macro] !== undefined) {
+      this.flags = ShaderManager.bitMasks[macro] | this.flags;
     } else {
       console.log('WARNING: ' + macro + ' is not a valid macro');
     }
   }
 
   compile() {
-    let existingProgramObject = ShaderStatic.programObjects[this.flags];
+    let existingProgramObject = ShaderManager.programObjects[this.flags];
     if (existingProgramObject) {
       this.programObject = existingProgramObject;
       return;
@@ -107,97 +104,86 @@ export default class Shader {
 
     // define macros
 
-    if (this.flags & ShaderStatic.bitMasks.HAS_SKIN) {
+    if (this.hasSkin()) {
       vsDefine += '#define HAS_SKIN\n';
     }
-    if (this.flags & ShaderStatic.bitMasks.SKIN_VEC8) {
+    if (this.hasSkinVec8()) {
       vsDefine += '#define SKIN_VEC8\n';
     }
 
-    if (this.flags & ShaderStatic.bitMasks.HAS_BASECOLORMAP) {
+    if (this.hasBaseColorMap()) {
       fsDefine += '#define HAS_BASECOLORMAP\n';
     }
-    if (this.flags & ShaderStatic.bitMasks.HAS_NORMALMAP) {
+    if (this.hasNormalMap()) {
       fsDefine += '#define HAS_NORMALMAP\n';
     }
-    if (this.flags & ShaderStatic.bitMasks.HAS_METALROUGHNESSMAP) {
+    if (this.hasMetalRoughnessMap()) {
       fsDefine += '#define HAS_METALROUGHNESSMAP\n';
     }
-    if (this.flags & ShaderStatic.bitMasks.HAS_OCCLUSIONMAP) {
+    if (this.hasOcclusionMap()) {
       fsDefine += '#define HAS_OCCLUSIONMAP\n';
     }
-    if (this.flags & ShaderStatic.bitMasks.HAS_EMISSIVEMAP) {
+    if (this.hasEmissiveMap()) {
       fsDefine += '#define HAS_EMISSIVEMAP\n';
     }
-
-
+    
     // concat
     let vertexShaderSource = 
-        ShaderStatic.shaderVersionLine +
+        ShaderManager.shaderVersionLine +
         vsDefine +
-        ShaderStatic.vsMasterCode;
+        ShaderManager.vsMasterCode;
     
     let fragmentShaderSource = 
-        ShaderStatic.shaderVersionLine +
+        ShaderManager.shaderVersionLine +
         fsDefine +
-        ShaderStatic.fsMasterCode;
+        ShaderManager.fsMasterCode;
 
     // compile
-    let program = ShaderStatic.createProgram(gl, vertexShaderSource, fragmentShaderSource);
-    this.programObject = {
-      program: program,
-
-      uniformLocations: {},
-
-      uniformBlockIndices: {}
-    };
+    this._program = ShaderManager.createProgram(gl, vertexShaderSource, fragmentShaderSource);
+    this._uniformLocations = {};
+    this._uniformBlockIndices = {};
 
     // uniform block id
-    if (this.flags & ShaderStatic.bitMasks.HAS_SKIN) {
-      this.programObject.uniformBlockIndices.JointMatrix = gl.getUniformBlockIndex(program, "JointMatrix");
+    if (this.hasSkin()) {
+      this._program.uniformBlockIndices.JointMatrix = gl.getUniformBlockIndex(this._program, "JointMatrix");
     }
 
-    // uniform locations
-    let us = this.programObject.uniformLocations;
+    this._uniformLocations.MVP = gl.getUniformLocation(this._program, 'u_MVP');
+    this._uniformLocations.MVNormal = gl.getUniformLocation(this._program, 'u_MVNormal');
+    this._uniformLocations.MV = gl.getUniformLocation(this._program, 'u_MV');
+    this._uniformLocations.baseColorFactor = gl.getUniformLocation(this._program, 'u_baseColorFactor');
+    this._uniformLocations.metallicFactor = gl.getUniformLocation(this._program, 'u_metallicFactor');
+    this._uniformLocations.roughnessFactor = gl.getUniformLocation(this._program, 'u_roughnessFactor');
 
-    us.MVP = gl.getUniformLocation(program, 'u_MVP');
-    us.MVNormal = gl.getUniformLocation(program, 'u_MVNormal');
-    us.MV = gl.getUniformLocation(program, 'u_MV');
-    us.baseColorFactor = gl.getUniformLocation(program, 'u_baseColorFactor');
-    us.metallicFactor = gl.getUniformLocation(program, 'u_metallicFactor');
-    us.roughnessFactor = gl.getUniformLocation(program, 'u_roughnessFactor');
-
-    if (this.flags & ShaderStatic.bitMasks.HAS_BASECOLORMAP) {
-      us.baseColorTexture = gl.getUniformLocation(program, 'u_baseColorTexture');
+    if (this.hasBaseColorMap()) {
+      this._uniformLocations.baseColorTexture = gl.getUniformLocation(this._program, 'u_baseColorTexture');
     }
-    if (this.flags & ShaderStatic.bitMasks.HAS_NORMALMAP) {
-      us.normalTexture = gl.getUniformLocation(program, 'u_normalTexture');
-      us.normalTextureScale = gl.getUniformLocation(program, 'u_normalTextureScale');
+    if (this.hasNormalMap()) {
+      this._uniformLocations.normalTexture = gl.getUniformLocation(this._program, 'u_normalTexture');
+      this._uniformLocations.normalTextureScale = gl.getUniformLocation(this._program, 'u_normalTextureScale');
     }
-    if (this.flags & ShaderStatic.bitMasks.HAS_METALROUGHNESSMAP) {
-      us.metallicRoughnessTexture = gl.getUniformLocation(program, 'u_metallicRoughnessTexture');
+    if (this.hasMetalRoughnessMap()) {
+      this._uniformLocations.metallicRoughnessTexture = gl.getUniformLocation(this._program, 'u_metallicRoughnessTexture');
     }
-    if (this.flags & ShaderStatic.bitMasks.HAS_OCCLUSIONMAP) {
-      us.occlusionTexture = gl.getUniformLocation(program, 'u_occlusionTexture');
-      us.occlusionStrength = gl.getUniformLocation(program, 'u_occlusionStrength');
+    if (this.hasOcclusionMap()) {
+      this._uniformLocations.occlusionTexture = gl.getUniformLocation(this._program, 'u_occlusionTexture');
+      this._uniformLocations.occlusionStrength = gl.getUniformLocation(this._program, 'u_occlusionStrength');
     }
-    if (this.flags & ShaderStatic.bitMasks.HAS_EMISSIVEMAP) {
-      us.emissiveTexture = gl.getUniformLocation(program, 'u_emissiveTexture');
-      us.emissiveFactor = gl.getUniformLocation(program, 'u_emissiveFactor');
+    if (this.hasEmissiveMap()) {
+      this._uniformLocations.emissiveTexture = gl.getUniformLocation(this._program, 'u_emissiveTexture');
+      this._uniformLocations.emissiveFactor = gl.getUniformLocation(this._program, 'u_emissiveFactor');
     }
 
-    us.diffuseEnvSampler = gl.getUniformLocation(program, 'u_DiffuseEnvSampler');
-    us.specularEnvSampler = gl.getUniformLocation(program, 'u_SpecularEnvSampler');
-    us.brdfLUT = gl.getUniformLocation(program, 'u_brdfLUT');
+    this._uniformLocations.diffuseEnvSampler = gl.getUniformLocation(this._program, 'u_DiffuseEnvSampler');
+    this._uniformLocations.specularEnvSampler = gl.getUniformLocation(this._program, 'u_SpecularEnvSampler');
+    this._uniformLocations.brdfLUT = gl.getUniformLocation(this._program, 'u_brdfLUT');
 
     // set static uniform values in cubemap
-    gl.useProgram(program);
-    gl.uniform1i(us.brdfLUT, BRDF_LUT.textureIndex);
-    gl.uniform1i(us.specularEnvSampler, CUBE_MAP.textureIndex);
-    gl.uniform1i(us.diffuseEnvSampler, CUBE_MAP.textureIBLDiffuseIndex);
+    gl.useProgram(this._program);
+    // gl.uniform1i(us.brdfLUT, BRDF_LUT.textureIndex);
+    // gl.uniform1i(us.specularEnvSampler, CUBE_MAP.textureIndex);
+    // gl.uniform1i(us.diffuseEnvSampler, CUBE_MAP.textureIBLDiffuseIndex);
     gl.useProgram(null);
-
-    ShaderStatic.programObjects[this.flags] = this.programObject;
   }
 
 }

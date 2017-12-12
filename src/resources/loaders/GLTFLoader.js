@@ -8,110 +8,165 @@ import Accessor from '../../core/Accessor';
 import Mesh from '../../core/Mesh';
 import Node from '../../core/Node';
 import Scene from '../../core/Scene';
+import Sampler from '../../core/Sampler';
 import Texture from '../../core/Texture';
-
-// const ATTRIBUTES = {
-//   'POSITION': 0,
-//   'NORMAL': 1,
-//     // 'TANGENT': 2,
-//   'TEXCOORD_0': 2,
-//     // 'TEXCOORD_1': 4,
-// };
+import Material from '../../core/Material';
 
 export default class GLTFLoader extends JSONLoader {
 
-  _decode(rawData) {
-    this._jsonObject = JSON.parse(rawData);
-    let glTF = this._jsonObject;
-    let path = this.url.substr(0, this.url.lastIndexOf('/'));
-    let buffers = [];
-        
+  _processBuffers(glTF, context) {
     if (glTF.buffers) {
       let urls = [];
+      let path = this.url.substr(0, this.url.lastIndexOf('/'));
       glTF.buffers.forEach((buffer) => {
         urls.push(path + '/' + buffer.uri);
       });
-
-      ResourcePipeline.loadAllAsync(urls).then((dataList) => {
-        buffers = dataList;
+      return ResourcePipeline.loadAllAsync(urls).then((dataList) => {
+        context.buffers = dataList;
+        return context;
       });
+    } else {
+      return Promise.resolve(context);
     }
+  }
 
+  _processBufferViews(glTF, context) {
     let bufferViews = [];
     if (glTF.bufferViews) {
       glTF.bufferViews.forEach((bufferView) => {
+        bufferView.buffer = context.buffers[bufferView.buffer];
         bufferViews.push(new BufferView(bufferView));
       });
     }
+    context.bufferViews = bufferViews;
+    return context;
+  }
 
+  _processAccessors(glTF, context) {
     let accessors = [];
     if (glTF.accessors) {
       glTF.accessors.forEach((accessor) => {
-        accessors.push(new Accessor(accessor));
+        accessor.bufferView = context.bufferViews[accessor.bufferView];
+        accessors.push(new Accessor(accessor, context.bufferViews));
       });
     }
+    context.accessors = accessors;
+    return context;
+  }
 
+  _processSamplers(glTF, context) {
+    let samplers = [];
     if (glTF.samplers) {
       glTF.samplers.forEach((sampler) => {
-        // console.log(sampler);
+        samplers.push(new Sampler(sampler));
       });
     }
+
+    context.samplers = samplers;
+    return context;
+  }
+
+  _processImages(glTF, context) {
+    let images = [];
     if (glTF.images) {
       glTF.images.forEach((image) => {
-        // console.log(image);
+        images.push(image);
       });
     }
+    context.images = images;
+    return context;
+  }
 
+  _processTextures(glTF, context) {
     let textures = [];
-
     if (glTF.textures) {
       glTF.textures.forEach((texture) => {
         textures.push(new Texture({
           name: texture.name,
-          sampler: glTF.samplers[texture.sampler],
-          source: glTF.images[texture.source]
+          sampler: context.samplers[texture.sampler],
+          source: context.images[texture.source]
         }));
       });
     }
+    context.textures = textures;
+    return context;
+  }
 
+  _processMaterials(glTF, context) {
     let materials = [];
-
-    this._meshes = [];
-    if (glTF.meshes) {
-      glTF.meshes.forEach((mesh) => {
-        this._meshes.push(new Mesh(mesh, accessors));
+    if (glTF.materials) {
+      glTF.materials.forEach((material) => {
+        materials.push(new Material(material));
       });
     }
+    context.materials = materials;
+    return context;
+  }
 
-    // console.log(glTF.nodes);
+  _processMesh(glTF, context) {
+    let meshes = [];
+    if (glTF.meshes) {
+      glTF.meshes.forEach((mesh) => {
+        meshes.push(new Mesh(mesh, context.accessors));
+      });
+    }
+    context.meshes = meshes;
+    return context;
+  }
+
+  _processNodes(glTF, context) {
     let identity = mat4.create();
     let rootNode = undefined;
     if (glTF.nodes && glTF.nodes.length > 0) {
       let node = glTF.nodes[0];
       rootNode = new Node(node, identity);
-      this._setupChildren(rootNode, node, glTF.nodes);
+      this._setupChildren(rootNode, node, glTF.nodes, context);
     }
-    
-    return Promise.resolve(new Scene({
-      buffers: buffers,
-      bufferViews: bufferViews,
-      accessors: accessors,
-      meshes: this._meshes,
-      textures: textures,
-      rootNode: rootNode
-    }));
+    context.rootNode = rootNode;
+    return context;
   }
 
-  _setupChildren(obj, node, nodes) {
+  _decode(rawData) {
+    this._jsonObject = JSON.parse(rawData);
+    let glTF = this._jsonObject;
+    let context = {
+      buffers: undefined,
+      bufferViews: undefined,
+      accessors: undefined,
+      meshes: undefined,
+      textures: undefined,
+      rootNode: undefined
+    };
+
+    this._processImages(glTF, context);
+    this._processSamplers(glTF, context);
+    this._processTextures(glTF, context);
+    this._processMaterials(glTF, context);
+
+    return this._processBuffers(glTF, context)
+      .then((context) => {
+        return this._processBufferViews(glTF, context);
+      }).then((context) => {
+        return this._processAccessors(glTF, context);
+      }).then((context) => {
+        return this._processMesh(glTF, context);
+      }).then((context) => {
+        return this._processNodes(glTF, context);
+      }).then((context) => {
+        return new Scene(context);
+      });
+  }
+
+  _setupChildren(obj, node, nodes, context) {
     if (node.mesh !== undefined) {
-      obj.mesh = this._meshes[node.mesh];
+      obj.mesh = context.meshes[node.mesh];
     }
     if (node.children) {
       node.children.forEach((child) => {
         let childNode = nodes[child];
         let childNodeIntance = new Node(childNode, obj.worldMatrix);
         obj.addChild(childNodeIntance);
-        this._setupChildren(childNodeIntance, childNode, nodes);
+        this._setupChildren(childNodeIntance, childNode, nodes, context);
       });
     }
   }

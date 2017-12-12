@@ -65,11 +65,9 @@ export default class ForwardRenderer {
       this._visitNode(root);
     }
 
-
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
-
     
     if (length) {
       for (let i = 0; i < length; i++) {

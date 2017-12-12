@@ -4,4 +4,8 @@ export default class Buffer {
     this._uri = uri;
     this._data = data;
   }
+
+  get data() {
+    return this._data;
+  }
 }

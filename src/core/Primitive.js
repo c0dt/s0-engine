@@ -15,13 +15,32 @@ export default class Primitive {
     this._material = material;
   }
 
+  _getLocationFromKey(key) {
+    return 0;
+  }
+
+  prepare() {
+    this._vao = gl.createVertexArray();
+    gl.bindVertexArray(this._vao);
+    for (let key in this._attributes) {
+      if (this._attributes.hasOwnProperty(key)) {
+        let attribute = this._attributes[key];
+        attribute.createBuffer();
+        attribute.bindData();
+        let location = this._getLocationFromKey(key);
+        attribute.prepareVertexAttrib(location);
+      }
+    }
+    gl.bindVertexArray(null);
+  }
+
   draw(context) {
-    // gl.bindVertexArray(this._vao);
-    // if (this._indices !== null) {
-    //   gl.drawElements(this._mode, this._indicesLength, this._indicesComponentType, this._indicesOffset);
-    // } else {
-    //   gl.drawArrays(this._mode, this._drawArraysOffset, this._drawArraysCount);
-    // }
-    // gl.bindVertexArray(null);
+    gl.bindVertexArray(this._vao);
+    if (this._indices !== null) {
+      gl.drawElements(this._mode, this._indicesLength, this._indicesComponentType, this._indicesOffset);
+    } else {
+      gl.drawArrays(this._mode, this._drawArraysOffset, this._drawArraysCount);
+    }
+    gl.bindVertexArray(null);
   }
 }

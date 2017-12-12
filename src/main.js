@@ -71,6 +71,7 @@ export default class Main {
     ResoucePipeline.loadAsync(url, {}).then(
       (asset) => {
         this._scene = asset;
+        console.log(this._scene);
         window.requestAnimationFrame(this.animate.bind(this));
       }
     );
