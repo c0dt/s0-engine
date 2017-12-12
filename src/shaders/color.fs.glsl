@@ -1,4 +1,3 @@
-#version 300 es
 #define FRAG_COLOR_LOCATION 0
 
 precision highp float;
@@ -12,5 +11,5 @@ uniform sampler2D albedo;
 
 void main()
 {
-    color = texture(albedo, vTexCoord);
+    color = vec4(vTexCoord,1.0,1.0);
 }

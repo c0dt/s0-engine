@@ -1,4 +1,3 @@
-#version 300 es
 #define POSITION_LOCATION 0
 #define NORMAL_LOCATION 1
 #define TEXCOORD_0_LOCATION 2

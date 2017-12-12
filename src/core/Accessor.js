@@ -62,7 +62,6 @@ export default class Accessor {
     if (target) {
       gl.bindBuffer(target, this._buffer);
       gl.bufferData(target, this._data, gl.STATIC_DRAW);
-      gl.bindBuffer(target, null);
       return true;
     }
     return false;

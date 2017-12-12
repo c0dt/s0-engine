@@ -93,4 +93,8 @@ export default class ForwardRenderer {
   _render(primitive) {
     primitive.primitive.draw(this);
   }
+
+  useMaterial(material) {
+    material.shader.use();
+  }
 }

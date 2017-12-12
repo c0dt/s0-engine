@@ -107,7 +107,7 @@ export default class GLTFLoader extends JSONLoader {
     let meshes = [];
     if (glTF.meshes) {
       glTF.meshes.forEach((mesh) => {
-        meshes.push(new Mesh(mesh, context.accessors));
+        meshes.push(new Mesh(mesh, context.accessors, context.materials));
       });
     }
     context.meshes = meshes;

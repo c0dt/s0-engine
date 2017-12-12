@@ -1,6 +1,8 @@
-export const ShaderManager = {
-  shaderVersionLine: '#version 300 es\n',
+import vsPBRMaster from '../shaders/color.vs.glsl';
+import fsPBRMaster from '../shaders/color.fs.glsl';
 
+export const ShaderManager = {
+  _shaderCounter: 0,
   bitMasks: {
     // vertex shader
     HAS_SKIN: 1 << 0,
@@ -14,19 +16,51 @@ export const ShaderManager = {
     HAS_EMISSIVEMAP: 1 << 6
   },
 
-  programObjects: {},
+  _programObjects: {
 
-  createShader(gl, source, type) {
+  },
+
+  createShader(type, flags) {
+    if (type === 'PBR') {
+      let shader = new Shader(vsPBRMaster, fsPBRMaster);
+      return shader.compile(flags);
+    }
+  },
+
+  getShader(type, version) {
+    let shaders = this._programObjects[type];
+    if (shaders && shaders[version]) {
+      return shaders[version];
+    } else {
+      let shader = this.createShader(type, version);
+      if (!shaders) {
+        this._programObjects[type] = {};
+      }
+      this._programObjects[type][version] = shader;
+      return shader;
+    }
+  }
+};
+
+export default class Shader {
+  constructor(vsCode, fsCode, flags) {
+    this._vsCode = vsCode;
+    this._fsCode = fsCode;
+    this._shaderVersionLine = '#version 300 es\n';
+    this._id = ShaderManager._shaderCounter++;
+  }
+
+  _createShader(gl, source, type) {
     let shader = gl.createShader(type);
     gl.shaderSource(shader, source);
     gl.compileShader(shader);
     return shader;
-  },
+  }
 
-  createProgram(gl, vertexShaderSource, fragmentShaderSource) {
+  _createProgram(gl, vertexShaderSource, fragmentShaderSource) {
     let program = gl.createProgram();
-    let vshader = ShaderManager.createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
-    let fshader = ShaderManager.createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+    let vshader = this._createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
+    let fshader = this._createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
     gl.attachShader(program, vshader);
     gl.deleteShader(vshader);
     gl.attachShader(program, fshader);
@@ -46,13 +80,6 @@ export const ShaderManager = {
       console.log(log);
     }
     return program;
-  }
-};
-
-export default class Shader {
-  constructor() {
-    this.flags = 0;
-    this.programObject = null;
   }
 
   hasSkin() {
@@ -80,7 +107,6 @@ export default class Shader {
     return this.flags & ShaderManager.bitMasks.HAS_EMISSIVEMAP;
   }
 
-
   defineMacro(macro) {
     if (ShaderManager.bitMasks[macro] !== undefined) {
       this.flags = ShaderManager.bitMasks[macro] | this.flags;
@@ -89,16 +115,12 @@ export default class Shader {
     }
   }
 
-  compile() {
-    let existingProgramObject = ShaderManager.programObjects[this.flags];
-    if (existingProgramObject) {
-      this.programObject = existingProgramObject;
-      return;
-    }
+  use() {
+    gl.useProgram(this._program);
+  }
 
-
-    // new program
-
+  compile(flags) {
+    this._flags = flags;
     let vsDefine = '';
     let fsDefine = '';
 
@@ -129,17 +151,17 @@ export default class Shader {
     
     // concat
     let vertexShaderSource = 
-        ShaderManager.shaderVersionLine +
+        this._shaderVersionLine +
         vsDefine +
-        ShaderManager.vsMasterCode;
+        this._vsCode;
     
     let fragmentShaderSource = 
-        ShaderManager.shaderVersionLine +
+        this._shaderVersionLine +
         fsDefine +
-        ShaderManager.fsMasterCode;
+        this._fsCode;
 
     // compile
-    this._program = ShaderManager.createProgram(gl, vertexShaderSource, fragmentShaderSource);
+    this._program = this._createProgram(gl, vertexShaderSource, fragmentShaderSource);
     this._uniformLocations = {};
     this._uniformBlockIndices = {};
 
@@ -184,6 +206,8 @@ export default class Shader {
     // gl.uniform1i(us.specularEnvSampler, CUBE_MAP.textureIndex);
     // gl.uniform1i(us.diffuseEnvSampler, CUBE_MAP.textureIBLDiffuseIndex);
     gl.useProgram(null);
+
+    return this;
   }
 
 }
