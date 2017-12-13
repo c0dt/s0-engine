@@ -7,18 +7,17 @@ export default class Material {
     this._alphaMode = alphaMode;
     this._pbrMetallicRoughness = pbrMetallicRoughness;
     this._shader = ShaderManager.getShader("PBR", 0);
-    this._baseColorTexture = textures[this._pbrMetallicRoughness.baseColorTexture.index];
+    this._baseColorTexture = {
+      texture: textures[this._pbrMetallicRoughness.baseColorTexture.index],
+      index: 0
+    };
   }
 
   get shader() {
     return this._shader;
   }
 
-  get baseColorTexture() {
+  get baseColorTextureInfo() {
     return this._baseColorTexture;
-  }
-
-  bindTextures() {
-    gl.bindTexture(gl.TEXTURE_2D, this._baseColorTexture._texture);
   }
 }

@@ -15,9 +15,14 @@ export default class Scene {
     this._rootNode = rootNode;
     this._textures = textures;
     this._materials = materials;
+    this._worldOffset = mat4.create();
   }
 
   get root() {
     return this._rootNode;
+  }
+
+  get worldOffset() {
+    return this._worldOffset;
   }
 }

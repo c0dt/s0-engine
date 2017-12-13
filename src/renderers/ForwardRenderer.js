@@ -18,7 +18,11 @@ export default class ForwardRenderer {
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_T, gl.REPEAT);
-
+    gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_R, gl.REPEAT);
+    gl.samplerParameterf(this.defaultSampler, gl.TEXTURE_MIN_LOD, -1000.0);
+    gl.samplerParameterf(this.defaultSampler, gl.TEXTURE_MAX_LOD, 1000.0);
+    gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_MODE, gl.NONE);
+    gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
     this._items = [];
   }
 
@@ -62,43 +66,43 @@ export default class ForwardRenderer {
     
     if (length === 0) {
       let root = scene.root;
-      this._visitNode(root);
+      let worldOffset = scene.worldOffset;
+      this._visitNode(root, worldOffset);
     }
 
     this.projection = camera.projection;
     this.view = camera.view;
-
-    gl.clearColor(0.5, 0.5, 0.5, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    // gl.enable(gl.CULL_FACE);
-    
+    length = this._items.length;
     if (length) {
       for (let i = 0; i < length; i++) {
         this._render(this._items[i]);
       }
     }
+
+    this._items = [];
   }
 
-  _visitNode(node) {
+  _visitNode(node, worldOffset) {
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {
         this._items.push({ 
           primitive: primitive, 
-          worldMatrix: node.worldMatrix 
+          worldMatrix: node.worldMatrix,
+          worldOffset: worldOffset
         });
       });
     }
     
     if (node.children) {
       node.children.forEach((child) => {
-        this._visitNode(child);
+        this._visitNode(child, worldOffset);
       });
     }
   }
 
   //@TODO 
   _render(item) {
-    let MV = mat4.mul(mat4.create(), this.view, item.worldMatrix);
+    let MV = mat4.mul(mat4.create(), this.view, mat4.mul(mat4.create(), item.worldOffset, item.worldMatrix));
     let MVP = mat4.mul(mat4.create(), this.projection, MV);
     this.context = {
       MVP: MVP,
@@ -112,7 +116,19 @@ export default class ForwardRenderer {
     material.shader.use();
     material.shader.setMat4("MVP", this.context.MVP);
     material.shader.setInt("u_baseColorTexture", 0);
-    material.bindTextures();
+    // material.bindTextures();
+
+    let texture = material.baseColorTextureInfo.texture;
+    let index = material.baseColorTextureInfo.index;
+    let sampler;
+    if (texture.sampler) {
+      sampler = texture.sampler.sampler;
+    } else {
+      sampler = this.defaultSampler;
+    }
+    gl.activeTexture(gl.TEXTURE0 + index);
+    gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+    gl.bindSampler(index, sampler);
   }
 
   //@TODO 

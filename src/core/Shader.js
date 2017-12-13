@@ -210,6 +210,10 @@ export default class Shader {
     return this;
   }
 
+  get uniformLocations() {
+    return this._uniformLocations;
+  }
+
   setMat4(type, mat4) {
     let location = this._uniformLocations[type];
     gl.uniformMatrix4fv(location, false, mat4);

@@ -3,7 +3,7 @@ export const glm = {
   radians(v) {
     return v * PI_DIV_180;
   },
-  degrees(v){
+  degrees(v) {
     return v / PI_DIV_180;
   }
 };

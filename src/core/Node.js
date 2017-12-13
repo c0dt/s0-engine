@@ -2,6 +2,7 @@ import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 
 export default class Node {
   constructor({ name, translation, rotation, scale }, parentWorldMatrix) {
+    this._components = [];
     this._name = name;
     this._translation = vec3.fromValues(translation[0], translation[1], translation[2]);
     this._rotation = quat.fromValues(rotation[0], rotation[1], rotation[2], rotation[3]);
