@@ -54,6 +54,10 @@ export default class Camera {
     return mat4.lookAt(this._view, this._position, center, this.up);
   }
 
+  get projection() {
+    return this._projection;
+  }
+
   get position() {
     return this._positionProxy;
   }

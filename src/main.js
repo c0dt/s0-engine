@@ -3,6 +3,8 @@ import { glm } from './glm';
 import * as MinimalGLTFLoader from 'minimal-gltf-loader';
 import BoundingBox from './primitives/BoundingBox';
 
+import Axis from './primitives/Axis';
+
 
 import Quad from './primitives/Quad';
 
@@ -15,13 +17,6 @@ import ResoucePipeline from './resources/ResourcePipeline';
 
 import Camera from './Camera';
 
-const ATTRIBUTES = {
-  'POSITION': 0,
-  'NORMAL': 1,
-  // 'TANGENT': 2,
-  'TEXCOORD_0': 2,
-  // 'TEXCOORD_1': 4,
-};
 
 export default class Main {
   constructor() {
@@ -58,16 +53,15 @@ export default class Main {
     mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
 
     this._camera = new Camera(this.projection, {
-      // position: vec3.fromValues(-60, 90, 90),
-      position: vec3.fromValues(0, 0.1, 0.5),
+      position: vec3.fromValues(0, 1, 5),
       yaw: -90.0,
-      // pitch: -30.0
       pitch: 0
     });
+    // this.axis = new Axis;
 
     this.primitives = {};
-    let url = 'models/SimpleTownLite/pizza_car_seperate/pizza_car_seperate.gltf';
-    // let url = 'animations/YippyKawaii/Anim@ATK1/Anim@ATK1.gltf';
+    // let url = 'models/SimpleTownLite/pizza_car_seperate/pizza_car_seperate.gltf';
+    let url = 'models/YippyKawaii/Miniscene/Miniscene.gltf';
     ResoucePipeline.loadAsync(url, {}).then(
       (asset) => {
         this._scene = asset;
@@ -82,18 +76,21 @@ export default class Main {
   }
 
   animate(time) {
+    let delta = time - this._time;
+    this._time = time;
     window.requestAnimationFrame(this.animate.bind(this));
     this.render();
-    this.update(time);
+    this.update(delta / 1000.0);
   }
 
   render() {
     this.renderer.render(this._scene, this._camera);
+    // this.axis(this._camera.view, this._camera.projection);
   }
 
-  update(time) {
-    this.flyController.update();
-    this.mouseController.update();
+  update(dt) {
+    this.flyController.update(dt);
+    this.mouseController.update(dt);
   }
 }
 

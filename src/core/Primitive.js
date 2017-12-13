@@ -49,19 +49,19 @@ export default class Primitive {
 
     gl.bindVertexArray(null);
   }
-
+  
+  //@TODO 
   draw(context) {
     if (!this._vao) {
       this.prepare();
       return;
     }
     context.useMaterial(this._material);
-    gl.bindVertexArray(this._vao);
+    context.bindVertexArray(this._vao);
     if (this._indices !== null) {
-      gl.drawElements(this._mode, this._indicesLength, this._indicesComponentType, this._indicesOffset);
+      context.drawElements(this._mode, this._indices._count, this._indices._componentType, this._indices._byteOffset);
     } else {
-      gl.drawArrays(this._mode, this._drawArraysOffset, this._drawArraysCount);
+      context.drawArrays(this._mode, this._drawArraysOffset, this._drawArraysCount);
     }
-    gl.bindVertexArray(null);
   }
 }

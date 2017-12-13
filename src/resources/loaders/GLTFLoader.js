@@ -96,7 +96,8 @@ export default class GLTFLoader extends JSONLoader {
     let materials = [];
     if (glTF.materials) {
       glTF.materials.forEach((material) => {
-        materials.push(new Material(material));
+        console.log(material);
+        materials.push(new Material(material, context.textures));
       });
     }
     context.materials = materials;

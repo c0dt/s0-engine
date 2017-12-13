@@ -19,7 +19,7 @@ export default class ForwardRenderer {
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_S, gl.REPEAT);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_T, gl.REPEAT);
 
-    this._primitives = [];
+    this._items = [];
   }
 
   setSize(width, height) {
@@ -58,20 +58,23 @@ export default class ForwardRenderer {
   }
 
   render(scene, camera) {
-    let length = this._primitives.length;
+    let length = this._items.length;
     
     if (length === 0) {
       let root = scene.root;
       this._visitNode(root);
     }
 
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    this.projection = camera.projection;
+    this.view = camera.view;
+
+    gl.clearColor(0.5, 0.5, 0.5, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.CULL_FACE);
+    // gl.enable(gl.CULL_FACE);
     
     if (length) {
       for (let i = 0; i < length; i++) {
-        this._render(this._primitives[i]);
+        this._render(this._items[i]);
       }
     }
   }
@@ -79,7 +82,10 @@ export default class ForwardRenderer {
   _visitNode(node) {
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {
-        this._primitives.push({ primitive: primitive, worldMatrix: node.worldMatrix });
+        this._items.push({ 
+          primitive: primitive, 
+          worldMatrix: node.worldMatrix 
+        });
       });
     }
     
@@ -90,11 +96,35 @@ export default class ForwardRenderer {
     }
   }
 
-  _render(primitive) {
-    primitive.primitive.draw(this);
+  //@TODO 
+  _render(item) {
+    let MV = mat4.mul(mat4.create(), this.view, item.worldMatrix);
+    let MVP = mat4.mul(mat4.create(), this.projection, MV);
+    this.context = {
+      MVP: MVP,
+      MV: MV
+    };
+    item.primitive.draw(this);
   }
 
+  //@TODO 
   useMaterial(material) {
     material.shader.use();
+    material.shader.setMat4("MVP", this.context.MVP);
+    material.shader.setInt("u_baseColorTexture", 0);
+  }
+
+  //@TODO 
+  bindVertexArray(id) {
+    gl.bindVertexArray(id);
+  }
+  
+  //@TODO 
+  drawElements(mode, indicesLength, indicesComponentType, indicesOffset) {
+    gl.drawElements(mode, indicesLength, indicesComponentType, indicesOffset);
+  }
+
+  drawArrays(mode, drawArraysOffset, drawArraysCount) {
+    gl.drawArrays(mode, drawArraysOffset, drawArraysCount);
   }
 }

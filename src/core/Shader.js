@@ -201,13 +201,22 @@ export default class Shader {
     this._uniformLocations.brdfLUT = gl.getUniformLocation(this._program, 'u_brdfLUT');
 
     // set static uniform values in cubemap
-    gl.useProgram(this._program);
+    // gl.useProgram(this._program);
     // gl.uniform1i(us.brdfLUT, BRDF_LUT.textureIndex);
     // gl.uniform1i(us.specularEnvSampler, CUBE_MAP.textureIndex);
     // gl.uniform1i(us.diffuseEnvSampler, CUBE_MAP.textureIBLDiffuseIndex);
-    gl.useProgram(null);
+    // gl.useProgram(null);
 
     return this;
   }
 
+  setMat4(type, mat4) {
+    let location = this._uniformLocations[type];
+    gl.uniformMatrix4fv(location, false, mat4);
+  }
+
+  setInt(type, value) {
+    let location = this._uniformLocations[type];
+    gl.uniform1i(location, value);
+  }
 }
