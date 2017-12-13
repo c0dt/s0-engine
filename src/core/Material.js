@@ -7,9 +7,14 @@ export default class Material {
     this._alphaMode = alphaMode;
     this._pbrMetallicRoughness = pbrMetallicRoughness;
     this._shader = ShaderManager.getShader("PBR", 0);
+    this._baseColorTexture = textures[this._pbrMetallicRoughness.baseColorTexture.index];
   }
 
   get shader() {
     return this._shader;
+  }
+
+  get baseColorTexture() {
+    return this._baseColorTexture;
   }
 }
