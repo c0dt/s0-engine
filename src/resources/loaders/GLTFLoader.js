@@ -67,14 +67,19 @@ export default class GLTFLoader extends JSONLoader {
   }
 
   _processImages(glTF, context) {
-    let images = [];
     if (glTF.images) {
+      let urls = [];
+      let path = this.url.substr(0, this.url.lastIndexOf('/'));
       glTF.images.forEach((image) => {
-        images.push(image);
+        urls.push(path + '/' + image.uri);
       });
+      return ResourcePipeline.loadAllAsync(urls).then((images) => {
+        context.images = images;
+        return context;
+      });
+    } else {
+      return Promise.resolve(context);
     }
-    context.images = images;
-    return context;
   }
 
   _processTextures(glTF, context) {
@@ -139,23 +144,20 @@ export default class GLTFLoader extends JSONLoader {
       rootNode: undefined
     };
 
-    this._processImages(glTF, context);
-    this._processSamplers(glTF, context);
-    this._processTextures(glTF, context);
-    this._processMaterials(glTF, context);
+    let promises = [];
 
-    return this._processBuffers(glTF, context)
-      .then((context) => {
-        return this._processBufferViews(glTF, context);
-      }).then((context) => {
-        return this._processAccessors(glTF, context);
-      }).then((context) => {
-        return this._processMesh(glTF, context);
-      }).then((context) => {
-        return this._processNodes(glTF, context);
-      }).then((context) => {
-        return new Scene(context);
-      });
+    promises.push(this._processImages(glTF, context));
+    promises.push(this._processBuffers(glTF, context));
+    return Promise.all(promises).then(() => {
+      this._processSamplers(glTF, context);
+      this._processTextures(glTF, context);
+      this._processMaterials(glTF, context);
+      this._processBufferViews(glTF, context);
+      this._processAccessors(glTF, context);
+      this._processMesh(glTF, context);
+      this._processNodes(glTF, context);
+      return new Scene(context);
+    });
   }
 
   _setupChildren(obj, node, nodes, context) {

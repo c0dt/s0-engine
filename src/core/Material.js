@@ -17,4 +17,8 @@ export default class Material {
   get baseColorTexture() {
     return this._baseColorTexture;
   }
+
+  bindTextures() {
+    gl.bindTexture(gl.TEXTURE_2D, this._baseColorTexture._texture);
+  }
 }

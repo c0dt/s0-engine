@@ -112,6 +112,7 @@ export default class ForwardRenderer {
     material.shader.use();
     material.shader.setMat4("MVP", this.context.MVP);
     material.shader.setInt("u_baseColorTexture", 0);
+    material.bindTextures();
   }
 
   //@TODO 

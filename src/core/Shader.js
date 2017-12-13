@@ -1,5 +1,5 @@
-import vsPBRMaster from '../shaders/color.vs.glsl';
-import fsPBRMaster from '../shaders/color.fs.glsl';
+import vsPBRMaster from '../shaders/unlit.vs.glsl';
+import fsPBRMaster from '../shaders/unlit.fs.glsl';
 
 export const ShaderManager = {
   _shaderCounter: 0,

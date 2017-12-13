@@ -2,13 +2,16 @@ import ResourceItem from './ResourceItem';
 
 import GLTFLoader from './loaders/GLTFLoader';
 import GLTFBufferLoader from './loaders/GLTFBufferLoader';
+import ImageLoader from './loaders/ImageLoader';
 
 class ResourcePipeline {
 
   constructor() {
     this._loaders = {
       "gltf": GLTFLoader,
-      "bin": GLTFBufferLoader
+      "bin": GLTFBufferLoader,
+      "jpg": ImageLoader,
+      "png": ImageLoader,
     };  
   }
 

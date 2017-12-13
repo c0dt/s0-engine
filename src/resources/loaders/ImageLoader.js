@@ -8,6 +8,7 @@ export default class ImageLoader extends Loader {
       img.crossOrigin = "Anonymous";
       img.src = this.url;
       img.onload = (evt) => {
+        this.item.data = img;
         resolve(evt);
         console.log(evt);
       };
