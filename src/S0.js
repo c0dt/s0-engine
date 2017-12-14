@@ -42,7 +42,7 @@ class S0 {
     mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
 
     this._camera = new Camera(this.projection, {
-      position: vec3.fromValues(0, 1, 5),
+      position: vec3.fromValues(0, 0.1, 0.5),
       yaw: -90.0,
       pitch: 0
     });
@@ -50,25 +50,31 @@ class S0 {
 
     this.primitives = {};
     this._scenes = [];
-    let url = 'models/YippyKawaii/Miniscene/Miniscene.gltf';
-    let r1 = ResoucePipeline.loadAsync(url, {}).then(
-      (asset) => {
-        this._scenes.push(asset);
-        this.mouseController.target = asset;
-        return asset;
-      }
-    );
-    url = 'models/SimpleTownLite/hotdog_truck_seperate_out/hotdog_truck_seperate.gltf';
-    let r2 = ResoucePipeline.loadAsync(url, {}).then(
-      (asset) => {
-        this._scenes.push(asset);
-        return asset;
-      }
-    );
-
-    Promise.all([r1, r2]).then(() => {
-      window.requestAnimationFrame(this.animate.bind(this));
+    let urls = [
+      // 'SimpleTownLite/models/apartment_large_thin_short',
+      // 'SimpleTownLite/models/billboard_mesh',
+      // 'SimpleTownLite/models/bin_mesh',
+      // 'SimpleTownLite/models/dumpster_mesh',
+      'SimpleTownLite/models/hotdog_truck_seperate',
+      // 'SimpleTownLite/models/pizza_car_seperate',
+      // 'SimpleTownLite/models/pizza_shop',
+      // 'SimpleTownLite/models/road_square_mesh',
+      // 'SimpleTownLite/models/road_straight_clear_mesh',
+      // 'SimpleTownLite/models/road_straight_mesh',
+      // 'SimpleTownLite/models/store_small_mesh',
+    ];
+    urls.forEach((url) => {
+      ResoucePipeline.loadAsync(`${url}/model.gltf`, {}).then(
+        (asset) => {
+          this._scenes.push(asset);
+          this.mouseController.target = asset.root;
+          return asset;
+        }
+      );
     });
+
+    window.requestAnimationFrame(this.animate.bind(this));
+
   }
 
   onWindowResize(event) {

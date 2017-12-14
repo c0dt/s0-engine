@@ -66,13 +66,13 @@ export default class ForwardRenderer {
     
     if (length === 0) {
       let root = scene.root;
-      let worldOffset = scene.worldOffset;
-      this._visitNode(root, worldOffset);
+      this._visitNode(root, mat4.create());
     }
 
     this.projection = camera.projection;
     this.view = camera.view;
     length = this._items.length;
+    
     if (length) {
       for (let i = 0; i < length; i++) {
         this._render(this._items[i]);
@@ -82,27 +82,29 @@ export default class ForwardRenderer {
     this._items = [];
   }
 
-  _visitNode(node, worldOffset) {
+  _visitNode(node, parentMatrix) {
+
+    let worldMatrix = mat4.multiply(mat4.create(), parentMatrix, node.localMatrix);
+    
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {
         this._items.push({ 
           primitive: primitive, 
-          worldMatrix: node.worldMatrix,
-          worldOffset: worldOffset
+          worldMatrix: worldMatrix
         });
       });
     }
     
     if (node.children) {
       node.children.forEach((child) => {
-        this._visitNode(child, worldOffset);
+        this._visitNode(child, worldMatrix);
       });
     }
   }
 
   //@TODO 
   _render(item) {
-    let MV = mat4.mul(mat4.create(), this.view, mat4.mul(mat4.create(), item.worldOffset, item.worldMatrix));
+    let MV = mat4.mul(mat4.create(), this.view, item.worldMatrix);
     let MVP = mat4.mul(mat4.create(), this.projection, MV);
     this.context = {
       MVP: MVP,

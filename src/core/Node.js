@@ -23,6 +23,10 @@ export default class Node {
     return this._worldMatrix;
   }
 
+  get localMatrix() {
+    return this._localMatrix;
+  }
+
   get mesh() {
     return this._mesh;
   }
