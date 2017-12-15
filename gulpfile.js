@@ -11,13 +11,8 @@ gulp.task('bundle-debug', function() {
     .pipe(gulp.dest(path.resolve(__dirname, 'build/debug/js/')));
 });
 
-gulp.task('html-debug', function() {
-  // gulp.src('./index.html')
-  // .pipe(gulp.dest('./build/debug/'))
-});
-
 gulp.task('resources-debug', function() {
-  gulp.src('./resources/**/*')
+  return gulp.src('./resources/**/*')
     .pipe(gulp.dest('./build/debug/'));
 });
 
@@ -33,12 +28,9 @@ gulp.task('browser-sync', function() {
     // https: true
   }, browserSyncReuseTab);
 
+  gulp.watch('resources/**/*', ['resources-debug']);
+  gulp.watch('src/**/*', ['bundle-debug']);
   gulp.watch('./build/debug/**/*').on('change', browserSync.reload);
 });
 
-gulp.task('watch-debug', function() {
-  gulp.watch('resources/**/*', ['resources-debug']);
-  gulp.watch('src/**/*', ['bundle-debug']);
-});
-
-gulp.task('default', runSequence('bundle-debug', 'html-debug', 'resources-debug', 'watch-debug', 'browser-sync'));
+gulp.task('default', runSequence('bundle-debug', 'resources-debug', 'browser-sync'));

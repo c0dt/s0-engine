@@ -49,8 +49,10 @@ export default class MouseController {
       console.log(pointer);
 
       // mat4.scale(this.target.worldOffset, mat4.create(), vec3.fromValues(2, 2, 2));
-      mat4.rotate(this.target.localMatrix, this.target.localMatrix, Math.PI / 180 * pointer.dX, vec3.fromValues(0, 1, 0));
-      mat4.rotate(this.target.localMatrix, this.target.localMatrix, Math.PI / 180 * pointer.dY, vec3.fromValues(1, 0, 0));
+      let rotation = mat4.create();
+      mat4.rotate(rotation, rotation, Math.PI / 180 * pointer.dX, vec3.fromValues(0, 1, 0));
+      mat4.rotate(rotation, rotation, Math.PI / 180 * pointer.dY, vec3.fromValues(1, 0, 0));
+      mat4.mul(this.target.localMatrix, rotation, this.target.localMatrix);
     }
   }
 
