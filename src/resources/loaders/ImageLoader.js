@@ -10,7 +10,6 @@ export default class ImageLoader extends Loader {
       img.onload = (evt) => {
         this.item.data = img;
         resolve(evt);
-        console.log(evt);
       };
       img.onerror = (error) => {
         reject(error);

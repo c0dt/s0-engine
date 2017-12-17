@@ -1,12 +1,4 @@
-import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-import { glm } from '../glm';
-import { ShaderStatic } from '../core/Shader';
-import Axis from '../primitives/Axis';
-
-import Camera from '../Camera';
-
-import vs from '../shaders/color.vs.glsl';
-import fs from '../shaders/color.fs.glsl';
+import { /* vec3, vec4, quat,*/ mat4 } from 'gl-matrix';
 
 export default class ForwardRenderer {
   constructor(width, height) {

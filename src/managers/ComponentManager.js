@@ -4,11 +4,11 @@ class ComponentManager {
     this._components = {};
   }
 
-  get(uuid){
+  get(uuid) {
     return this._components[uuid];
   }
 
-  add(component){
+  add(component) {
     let uuid = component.uuid;
     this._components[uuid] = component;
   }

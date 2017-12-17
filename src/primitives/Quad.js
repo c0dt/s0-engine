@@ -1,10 +1,9 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-import { ShaderStatic } from '../core/Shader';
 import vs from '../shaders/quad.vs.glsl';
 import fs from '../shaders/quad.fs.glsl';
 
-export default class Quad{
-  constructor(){
+export default class Quad {
+  constructor() {
     this.vertexData = new Float32Array([
       -1.0, 1.0, 0.0, 0.0, 1.0,
       -1.0, -1.0, 0.0, 0.0, 0.0,
@@ -40,7 +39,7 @@ export default class Quad{
     
     let MVP = mat4.create();
     gl.useProgram(this.program);
-    if (this.texture){
+    if (this.texture) {
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, this.texture);
     }

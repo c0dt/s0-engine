@@ -1,11 +1,14 @@
+import Component from './Component';
+
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 import Camera from '../Camera';
 
-export default class MouseController {
+export default class MouseController extends Component {
 
   constructor() {
+    super();
     this._pointers = {};
-
+    
     this._handlePointerDown = this._handlePointerDown.bind(this);
     this._handlePointerMove = this._handlePointerMove.bind(this);
     this._handlePointerUp = this._handlePointerUp.bind(this);

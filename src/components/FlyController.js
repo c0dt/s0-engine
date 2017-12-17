@@ -1,11 +1,14 @@
+import Component from './Component';
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 import Camera from '../Camera';
 
 let pressed = {};
 
-export default class FlyController {
+export default class FlyController extends Component {
 
   constructor() {
+    super();
+    
     document.addEventListener('keydown', () => {
       pressed[event.code] = true;
     }, false);

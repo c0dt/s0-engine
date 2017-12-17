@@ -1,10 +1,9 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-import { ShaderStatic } from '../core/Shader';
 import vsBBOX from '../shaders/axis.vs.glsl';
 import fsBBOX from '../shaders/axis.fs.glsl';
 
-export default class Axis{
-  constructor(){
+export default class Axis {
+  constructor() {
     this.vertexData = new Float32Array([
       0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
       1.0, 0.0, 0.0, 1.0, 0.0, 0.0,

@@ -27,13 +27,7 @@ export default class Camera {
     this.zoom;
 
     this.updateVectors();
-
-    // let f1 = window.datGUI.addFolder('Camera');
-    // f1.add(this.position, 'x').step(0.1);
-    // f1.add(this.position, 'y').step(0.1);
-    // f1.add(this.position, 'z').step(0.1);
-    // f1.open();
-
+    
     Camera.current = this;
   }
 

@@ -18,7 +18,7 @@ export default class BinaryLoader extends Loader {
               });
             }
           } else {
-            reject("");
+            reject("xobj.status !== 200");
           }
         }
       };

@@ -55,7 +55,7 @@ class S0 {
       // 'SimpleTownLite/models/billboard_mesh',
       // 'SimpleTownLite/models/bin_mesh',
       // 'SimpleTownLite/models/dumpster_mesh',
-      'SimpleTownLite/models/hotdog_truck_seperate',
+      // 'SimpleTownLite/models/hotdog_truck_seperate',
       // 'SimpleTownLite/models/pizza_car_seperate',
       // 'SimpleTownLite/models/pizza_shop',
       // 'SimpleTownLite/models/road_square_mesh',
