@@ -3,6 +3,7 @@ import { glm } from './glm';
 import FlyController from './components/FlyController';
 import MouseController from './components/MouseController';
 import ForwardRenderer from './renderers/ForwardRenderer';
+import DeferredRenderer from './renderers/DeferredRenderer';
 import ResoucePipeline from './resources/ResourcePipeline';
 
 import Camera from './Camera';
@@ -24,11 +25,15 @@ class S0 {
       document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
       return;
     }
+    if (!gl.getExtension("EXT_color_buffer_float")) {
+      console.error("FLOAT color buffer not available");
+      document.body.innerHTML = "This example requires EXT_color_buffer_float which is unavailable on this system.";
+    }
 
     window.gl = gl;
     // window.datGUI = new dat.GUI();
 
-    this.renderer = new ForwardRenderer(canvas.width, canvas.height);
+    this.renderer = new DeferredRenderer(canvas.width, canvas.height);
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     canvas.oncontextmenu = function(e) {
@@ -56,8 +61,8 @@ class S0 {
       // 'SimpleTownLite/models/bin_mesh',
       // 'SimpleTownLite/models/dumpster_mesh',
       // 'SimpleTownLite/models/hotdog_truck_seperate',
-      // 'SimpleTownLite/models/pizza_car_seperate',
-      'SimpleTownLite/models/pizza_shop',
+      'SimpleTownLite/models/pizza_car_seperate',
+      // 'SimpleTownLite/models/pizza_shop',
       // 'SimpleTownLite/models/road_square_mesh',
       // 'SimpleTownLite/models/road_straight_clear_mesh',
       // 'SimpleTownLite/models/road_straight_mesh',
@@ -90,14 +95,7 @@ class S0 {
   }
 
   render() {
-    gl.clearColor(0.8, 0.8, 0.8, 1.0);
-    
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.enable(gl.CULL_FACE);
-    
-    this._scenes.forEach((scene) => {
-      this.renderer.render(scene, this._camera);
-    });
+    this.renderer.render(this._scenes, this._camera);
   }
 
   update(dt) {

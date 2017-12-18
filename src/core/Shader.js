@@ -1,5 +1,8 @@
-import vsPBRMaster from '../shaders/unlit.vs.glsl';
-import fsPBRMaster from '../shaders/unlit.fs.glsl';
+// import vsPBRMaster from '../shaders/unlit.vs.glsl';
+// import fsPBRMaster from '../shaders/unlit.fs.glsl';
+
+import vsPBRMaster from '../shaders/deferred/pbr.vs.glsl';
+import fsPBRMaster from '../shaders/deferred/pbr.fs.glsl';
 
 export const ShaderManager = {
   _shaderCounter: 0,

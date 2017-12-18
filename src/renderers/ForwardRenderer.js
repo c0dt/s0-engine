@@ -48,27 +48,35 @@ export default class ForwardRenderer extends Renderer {
     gl.bindSampler(textureInfo.index, sampler);
   }
 
-  render(scene, camera) {
-    let length = this._items.length;
+  render(scenes, camera) {
+    gl.clearColor(0.8, 0.8, 0.8, 1.0);
     
-    if (length === 0) {
-      let root = scene.root;
-      this._visitNode(root, mat4.create());
-    }
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.CULL_FACE);
 
-    this.projection = camera.projection;
-    this.view = camera.view;
-    length = this._items.length;
+    scenes.forEach((scene) => {
+      let length = this._items.length;
     
-    if (length) {
-      for (let i = 0; i < length; i++) {
-        this._render(this._items[i]);
+      if (length === 0) {
+        let root = scene.root;
+        this._visitNode(root, mat4.create());
       }
-    }
-
-    this._items = [];
+  
+      this.projection = camera.projection;
+      this.view = camera.view;
+      length = this._items.length;
+      
+      if (length) {
+        for (let i = 0; i < length; i++) {
+          this._render(this._items[i]);
+        }
+      }
+  
+      this._items = [];
+    });
   }
 
+  //
   _visitNode(node, parentMatrix) {
 
     let worldMatrix = mat4.multiply(mat4.create(), parentMatrix, node.localMatrix);
@@ -104,7 +112,7 @@ export default class ForwardRenderer extends Renderer {
   useMaterial(material) {
     material.shader.use();
     material.shader.setMat4("MVP", this.context.MVP);
-    material.shader.setInt("u_baseColorTexture", 0);
+    material.shader.setInt("uBaseColorTexture", 0);
     // material.bindTextures();
 
     let texture = material.baseColorTextureInfo.texture;
