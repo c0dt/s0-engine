@@ -87,7 +87,7 @@
     "images": [
         {
             "name": "Building02a_1",
-            "uri": "../../textures/STL_Building_Apartment_02.png"
+            "uri": "../../textures/STL_Shop_Damaged.png"
         }
     ],
     "samplers": [

@@ -1,8 +1,9 @@
+import Renderer from './Renderer';
 import { /* vec3, vec4, quat,*/ mat4 } from 'gl-matrix';
 
-export default class ForwardRenderer {
+export default class ForwardRenderer extends Renderer {
   constructor(width, height) {
-    this.setSize(width, height);
+    super(width, height);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LESS);
     this.defaultSampler = gl.createSampler();
@@ -16,12 +17,6 @@ export default class ForwardRenderer {
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_MODE, gl.NONE);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
     this._items = [];
-  }
-
-  setSize(width, height) {
-    this._viewWith = width;
-    this._viewHeight = height;
-    gl.viewport(0, 0, width, height);
   }
 
   activeAndBindTexture(uniformLocation, textureInfo) {
