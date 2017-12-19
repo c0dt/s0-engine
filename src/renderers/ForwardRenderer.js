@@ -19,10 +19,9 @@ export default class ForwardRenderer extends Renderer {
     this._items = [];
   }
 
-  activeAndBindTexture(uniformLocation, textureInfo) {
-    gl.uniform1i(uniformLocation, textureInfo.index);
+  activeAndBindTexture(textureInfo) {
     gl.activeTexture(gl.TEXTURE0 + textureInfo.index);
-    let texture = this.textures[ textureInfo.index ];
+    let texture = textureInfo.texture;
     if (!texture.texture) {
       texture.texture = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D, texture.texture);
@@ -103,30 +102,15 @@ export default class ForwardRenderer extends Renderer {
     let MVP = mat4.mul(mat4.create(), this.projection, MV);
     this.context = {
       MVP: MVP,
-      MV: MV
+      MV: MV,
+      activeAndBindTexture: this.activeAndBindTexture
     };
     item.primitive.draw(this);
   }
 
   //@TODO 
   useMaterial(material) {
-    material.shader.use();
-    material.shader.setMat4('uMVP', this.context.MVP);
-    material.shader.setInt('uBaseColorTexture', 0);
-    // material.bindTextures();
-    if (material.baseColorTextureInfo) {
-      let texture = material.baseColorTextureInfo.texture;
-      let index = material.baseColorTextureInfo.index;
-      let sampler;
-      if (texture.sampler) {
-        sampler = texture.sampler.sampler;
-      } else {
-        sampler = this.defaultSampler;
-      }
-      gl.activeTexture(gl.TEXTURE0 + index);
-      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-      gl.bindSampler(index, sampler);
-    }
+    material.use(this.context);
   }
 
   //@TODO 

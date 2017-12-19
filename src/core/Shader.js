@@ -1,8 +1,11 @@
 // import vsPBRMaster from '../shaders/forward/unlit.vs.glsl';
 // import fsPBRMaster from '../shaders/forward/unlit.fs.glsl';
 
-import vsPBRMaster from '../shaders/deferred/pbr.vs.glsl';
-import fsPBRMaster from '../shaders/deferred/pbr.fs.glsl';
+import vsPBRMaster from '../shaders/forward/pbr.vs.glsl';
+import fsPBRMaster from '../shaders/forward/pbr.fs.glsl';
+
+// import vsPBRMaster from '../shaders/deferred/pbr.vs.glsl';
+// import fsPBRMaster from '../shaders/deferred/pbr.fs.glsl';
 
 export const ShaderManager = {
   _shaderCounter: 0,
@@ -110,20 +113,12 @@ export default class Shader {
     return this.flags & ShaderManager.bitMasks.HAS_EMISSIVEMAP;
   }
 
-  defineMacro(macro) {
-    if (ShaderManager.bitMasks[macro] !== undefined) {
-      this.flags = ShaderManager.bitMasks[macro] | this.flags;
-    } else {
-      console.log('WARNING: ' + macro + ' is not a valid macro');
-    }
-  }
-
   use() {
     gl.useProgram(this._program);
   }
 
   compile(flags) {
-    this._flags = flags;
+    this.flags = flags;
     let vsDefine = '';
     let fsDefine = '';
 
@@ -170,12 +165,13 @@ export default class Shader {
 
     // uniform block id
     if (this.hasSkin()) {
-      this._program.uniformBlockIndices.JointMatrix = gl.getUniformBlockIndex(this._program, "JointMatrix");
+      this._program.uniformBlockIndices.JointMatrix = gl.getUniformBlockIndex(this._program, "uJointMatrix");
     }
 
     this._uniformLocations.MVP = gl.getUniformLocation(this._program, 'uMVP');
     this._uniformLocations.MVNormal = gl.getUniformLocation(this._program, 'uMVNormal');
     this._uniformLocations.MV = gl.getUniformLocation(this._program, 'uMV');
+
     this._uniformLocations.baseColorFactor = gl.getUniformLocation(this._program, 'uBaseColorFactor');
     this._uniformLocations.metallicFactor = gl.getUniformLocation(this._program, 'uMetallicFactor');
     this._uniformLocations.roughnessFactor = gl.getUniformLocation(this._program, 'uRoughnessFactor');

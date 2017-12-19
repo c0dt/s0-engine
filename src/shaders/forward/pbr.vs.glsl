@@ -2,82 +2,67 @@
 #define NORMAL_LOCATION 1
 #define TEXCOORD_0_LOCATION 2
 #define JOINTS_0_LOCATION 3
-#define JOINTS_1_LOCATION 5
 #define WEIGHTS_0_LOCATION 4
+#define JOINTS_1_LOCATION 5
 #define WEIGHTS_1_LOCATION 6
 #define TANGENT_LOCATION 7
 
 precision highp float;
 precision highp int;
 
-uniform mat4 u_MVP;
-uniform mat4 u_MV;
-uniform mat4 u_MVNormal;
+uniform mat4 uMVP;
+uniform mat4 uMV;
+uniform mat4 uMVNormal;
 
 #ifdef HAS_SKIN
 uniform JointMatrix
 {
     mat4 matrix[65];
-} u_jointMatrix;
+} uJointMatrix;
 #endif
 
-layout(location = POSITION_LOCATION) in vec3 position;
-layout(location = NORMAL_LOCATION) in vec3 normal;
-layout(location = TEXCOORD_0_LOCATION) in vec2 uv;
+layout(location = POSITION_LOCATION) in vec3 aPosition;
+layout(location = NORMAL_LOCATION) in vec3 aNormal;
+layout(location = TEXCOORD_0_LOCATION) in vec2 aTexcoord;
 
 #ifdef HAS_SKIN
-layout(location = JOINTS_0_LOCATION) in vec4 joint0;
-layout(location = WEIGHTS_0_LOCATION) in vec4 weight0;
+layout(location = JOINTS_0_LOCATION) in vec4 aJoint0;
+layout(location = WEIGHTS_0_LOCATION) in vec4 aWeight0;
 #ifdef SKIN_VEC8
-layout(location = JOINTS_1_LOCATION) in vec4 joint1;
-layout(location = WEIGHTS_1_LOCATION) in vec4 weight1;
+layout(location = JOINTS_1_LOCATION) in vec4 aJoint1;
+layout(location = WEIGHTS_1_LOCATION) in vec4 aWeight1;
 #endif
 #endif
 
-
-// #ifdef HAS_TANGENTS
-// layout(location = TANGENT_LOCATION) in vec4 tangent;
-
-// out vec3 v_tangentW;
-// out vec3 v_bitangentW;
-// #endif
-
-
-out vec3 v_position;
-out vec3 v_normal;
-out vec2 v_uv;
+out vec3 vPosition;
+out vec3 vNormal;
+out vec2 vTexcoord;
 
 void main()
 {
-
 #ifdef HAS_SKIN
     mat4 skinMatrix = 
-        weight0.x * u_jointMatrix.matrix[int(joint0.x)] +
-        weight0.y * u_jointMatrix.matrix[int(joint0.y)] +
-        weight0.z * u_jointMatrix.matrix[int(joint0.z)] +
-        weight0.w * u_jointMatrix.matrix[int(joint0.w)];
+    aWeight0.x * uJointMatrix.matrix[int(aJoint0.x)] +
+    aWeight0.y * uJointMatrix.matrix[int(aJoint0.y)] +
+    aWeight0.z * uJointMatrix.matrix[int(aJoint0.z)] +
+    aWeight0.w * uJointMatrix.matrix[int(aJoint0.w)];
 #ifdef SKIN_VEC8
     skinMatrix +=
-        weight1.x * u_jointMatrix.matrix[int(joint1.x)] +
-        weight1.y * u_jointMatrix.matrix[int(joint1.y)] +
-        weight1.z * u_jointMatrix.matrix[int(joint1.z)] +
-        weight1.w * u_jointMatrix.matrix[int(joint1.w)];
+    aWeight1.x * uJointMatrix.matrix[int(aJoint1.x)] +
+    aWeight1.y * uJointMatrix.matrix[int(aJoint1.y)] +
+    aWeight1.z * uJointMatrix.matrix[int(aJoint1.z)] +
+    aWeight1.w * uJointMatrix.matrix[int(aJoint1.w)];
 #endif
 #endif
-
-    v_uv = uv;
-
+    vTexcoord = aTexcoord;
 #ifdef HAS_SKIN
-    v_normal = normalize(( u_MVNormal * transpose(inverse(skinMatrix)) * vec4(normal, 0)).xyz);
-    vec4 pos = u_MV * skinMatrix * vec4(position, 1.0);
-    gl_Position = u_MVP * skinMatrix * vec4(position, 1.0);
+    vNormal = normalize(( uMVNormal * transpose(inverse(skinMatrix)) * vec4(aNormal, 0)).xyz);
+    vec4 pos = uMV * skinMatrix * vec4(aPosition, 1.0);
+    gl_Position = uMVP * skinMatrix * vec4(aPosition, 1.0);
 #else
-    v_normal = normalize((u_MVNormal * vec4(normal, 0)).xyz);
-    vec4 pos = u_MV * vec4(position, 1.0);
-    gl_Position = u_MVP * vec4(position, 1.0);
+    vNormal = normalize((uMVNormal * vec4(aNormal, 0)).xyz);
+    vec4 pos = uMV * vec4(aPosition, 1.0);
+    gl_Position = uMVP * vec4(aPosition, 1.0);
 #endif
-
-    v_position = vec3(pos.xyz) / pos.w;
-    
-    
+    vPosition = vec3(pos.xyz) / pos.w;
 }

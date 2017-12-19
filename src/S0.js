@@ -14,6 +14,10 @@ class S0 {
   }
 
   initWith(canvas) {
+    canvas.oncontextmenu = (e) => {
+      e.preventDefault();
+    };
+
     window.GameCanvas = canvas;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
@@ -29,15 +33,10 @@ class S0 {
       console.warn("This example requires EXT_color_buffer_float which is unavailable on this system.");
     }
     window.gl = gl;
-    // window.datGUI = new dat.GUI();
-
-    // this.renderer = new ForwardRenderer(canvas.width, canvas.height);
-    this.renderer = new DeferredRenderer(canvas.width, canvas.height);
+    this.renderer = new ForwardRenderer(canvas.width, canvas.height);
+    // this.renderer = new DeferredRenderer(canvas.width, canvas.height);
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
-    canvas.oncontextmenu = function(e) {
-      e.preventDefault();
-    };
     //
     this.flyController = new FlyController;
     this.mouseController = new MouseController;
@@ -82,7 +81,6 @@ class S0 {
     });
 
     window.requestAnimationFrame(this.animate.bind(this));
-
   }
 
   onWindowResize(event) {

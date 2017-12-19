@@ -53,6 +53,6 @@ export default class Camera {
   }
 
   get position() {
-    return this._positionProxy;
+    return this._position;
   }
 }

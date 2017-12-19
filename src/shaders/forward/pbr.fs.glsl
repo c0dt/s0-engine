@@ -6,48 +6,51 @@ precision highp float;
 precision highp int;
 
 // IBL
-uniform samplerCube u_DiffuseEnvSampler;
-uniform samplerCube u_SpecularEnvSampler;
-uniform sampler2D u_brdfLUT;
+uniform samplerCube uDiffuseEnvSampler;
+uniform samplerCube uSpecularEnvSampler;
+uniform sampler2D uBrdfLUT;
 
 // Metallic-roughness material
 
 // base color
-uniform vec4 u_baseColorFactor;
+uniform vec4 uBaseColorFactor;
 #ifdef HAS_BASECOLORMAP
-uniform sampler2D u_baseColorTexture;
+uniform sampler2D uBaseColorTexture;
 #endif
 
 // normal map
 #ifdef HAS_NORMALMAP
-uniform sampler2D u_normalTexture;
-uniform float u_normalTextureScale;
+uniform sampler2D uNormalTexture;
+uniform float uNormalTextureScale;
 #endif
 
 // emmisve map
 #ifdef HAS_EMISSIVEMAP
-uniform sampler2D u_emissiveTexture;
-uniform vec3 u_emissiveFactor;
+uniform sampler2D uEmissiveTexture;
+uniform vec3 uEmissiveFactor;
 #endif
 
 // metal roughness
 #ifdef HAS_METALROUGHNESSMAP
-uniform sampler2D u_metallicRoughnessTexture;
+uniform sampler2D uMetallicRoughnessTexture;
 #endif
-uniform float u_metallicFactor;
-uniform float u_roughnessFactor;
+uniform float uMetallicFactor;
+uniform float uRoughnessFactor;
 
 // occlusion texture
 #ifdef HAS_OCCLUSIONMAP
-uniform sampler2D u_occlusionTexture;
-uniform float u_occlusionStrength;
+uniform sampler2D uOcclusionTexture;
+uniform float uOcclusionStrength;
 #endif
 
-in vec3 v_position;
-in vec3 v_normal;
-in vec2 v_uv;
+in vec3 vPosition;
+in vec3 vNormal;
+in vec2 vTexcoord;
 
 layout(location = FRAG_COLOR_LOCATION) out vec4 frag_color;
+
+const float M_PI = 3.141592653589793;
+const float c_MinRoughness = 0.04;
 
 struct PBRInfo
 {
@@ -74,9 +77,6 @@ struct PBRInfo
 //     return normap.y * surftan * u_normalTextureScale + normap.x * surfbinor * u_normalTextureScale + normap.z * geomnor;
 // }
 
-const float M_PI = 3.141592653589793;
-const float c_MinRoughness = 0.04;
-
 
 // vec3 getNormal()
 // {
@@ -100,46 +100,21 @@ const float c_MinRoughness = 0.04;
 // or from the interpolated mesh normal and tangent attributes.
 vec3 getNormal()
 {
-
-// #ifdef HAS_NORMALMAP
-//     vec3 n = applyNormalMap( v_normal, texture(u_normalTexture, v_uv).rgb );
-// #else
-//     vec3 n = v_normal;
-// #endif
-//     return n;
-
-
-    // Retrieve the tangent space matrix
-// #ifndef HAS_TANGENTS
-    vec3 pos_dx = dFdx(v_position);
-    vec3 pos_dy = dFdy(v_position);
-    vec3 tex_dx = dFdx(vec3(v_uv, 0.0));
-    vec3 tex_dy = dFdy(vec3(v_uv, 0.0));
+    vec3 pos_dx = dFdx(vPosition);
+    vec3 pos_dy = dFdy(vPosition);
+    vec3 tex_dx = dFdx(vec3(vTexcoord, 0.0));
+    vec3 tex_dy = dFdy(vec3(vTexcoord, 0.0));
     vec3 t = (tex_dy.t * pos_dx - tex_dx.t * pos_dy) / (tex_dx.s * tex_dy.t - tex_dy.s * tex_dx.t);
-
-    vec3 ng = v_normal;
-// #ifdef HAS_NORMALS
-//     vec3 ng = normalize(v_normal);
-// #else
-//     vec3 ng = cross(pos_dx, pos_dy);
-// #endif
-
+    vec3 ng = vNormal;
     t = normalize(t - ng * dot(ng, t));
     vec3 b = normalize(cross(ng, t));
     mat3 tbn = mat3(t, b, ng);
-// #else // HAS_TANGENTS
-    // mat3 tbn = v_TBN;
-// #endif
-
-// TODO: TANGENTS
-
 #ifdef HAS_NORMALMAP
-    vec3 n = texture(u_normalTexture, v_uv).rgb;
-    n = normalize(tbn * ((2.0 * n - 1.0) * vec3(u_normalTextureScale, u_normalTextureScale, 1.0)));
+    vec3 n = texture(uNormalTexture, vTexcoord).rgb;
+    n = normalize(tbn * ((2.0 * n - 1.0) * vec3(uNormalTextureScale, uNormalTextureScale, 1.0)));
 #else
     vec3 n = tbn[2].xyz;
 #endif
-
     return n;
 }
 
@@ -150,22 +125,11 @@ vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
     float mipCount = 10.0; // resolution of 256x256
     float lod = (pbrInputs.perceptualRoughness * mipCount);
     // retrieve a scale and bias to F0. See [1], Figure 3
-    vec3 brdf = texture(u_brdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness)).rgb;
-    vec3 diffuseLight = texture(u_DiffuseEnvSampler, n).rgb;
-
-// #ifdef USE_TEX_LOD
-    vec3 specularLight = texture(u_SpecularEnvSampler, reflection, lod).rgb;
-// #else
-    // vec3 specularLight = texture(u_SpecularEnvSampler, reflection).rgb;
-// #endif
-
+    vec3 brdf = texture(uBrdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness)).rgb;
+    vec3 diffuseLight = texture(uDiffuseEnvSampler, n).rgb;
+    vec3 specularLight = texture(uSpecularEnvSampler, reflection, lod).rgb;
     vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
     vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
-
-    // // For presentation, this allows us to disable IBL terms
-    // diffuse *= u_ScaleIBLAmbient.x;
-    // specular *= u_ScaleIBLAmbient.y;
-
     return diffuse + specular;
 }
 
@@ -177,14 +141,12 @@ vec3 diffuse(PBRInfo pbrInputs)
     return pbrInputs.diffuseColor / M_PI;
 }
 
-
 // The following equation models the Fresnel reflectance term of the spec equation (aka F())
 // Implementation of fresnel from [4], Equation 15
 vec3 specularReflection(PBRInfo pbrInputs)
 {
     return pbrInputs.reflectance0 + (pbrInputs.reflectance90 - pbrInputs.reflectance0) * pow(clamp(1.0 - pbrInputs.VdotH, 0.0, 1.0), 5.0);
 }
-
 
 // This calculates the specular geometric attenuation (aka G()),
 // where rougher material will reflect less light back to the viewer.
@@ -219,13 +181,13 @@ float microfacetDistribution(PBRInfo pbrInputs)
 
 void main()
 {
-    float perceptualRoughness = u_roughnessFactor;
-    float metallic = u_metallicFactor;
-
+    float perceptualRoughness = uRoughnessFactor;
+    float metallic = uMetallicFactor;
 #ifdef HAS_METALROUGHNESSMAP
-    // Roughness is stored in the 'g' channel, metallic is stored in the 'b' channel.
+    // Roughness is stored in the 'g' channel, 
+    // Metallic is stored in the 'b' channel.
     // This layout intentionally reserves the 'r' channel for (optional) occlusion map data
-    vec4 mrSample = texture(u_metallicRoughnessTexture, v_uv);
+    vec4 mrSample = texture(uMetallicRoughnessTexture, vTexcoord);
     perceptualRoughness = mrSample.g * perceptualRoughness;
     metallic = mrSample.b * metallic;
 #endif
@@ -235,16 +197,12 @@ void main()
     // convert to material roughness by squaring the perceptual roughness [2].
     float alphaRoughness = perceptualRoughness * perceptualRoughness;
 
-
     // The albedo may be defined from a base texture or a flat color
 #ifdef HAS_BASECOLORMAP
-    vec4 baseColor = texture(u_baseColorTexture, v_uv) * u_baseColorFactor;
+    vec4 baseColor = texture(uBaseColorTexture, vTexcoord) * uBaseColorFactor;
 #else
-    vec4 baseColor = u_baseColorFactor;
+    vec4 baseColor = uBaseColorFactor;
 #endif
-
-
-
     vec3 f0 = vec3(0.04);
     vec3 diffuseColor = baseColor.rgb * (vec3(1.0) - f0);
     diffuseColor *= 1.0 - metallic;
@@ -252,18 +210,14 @@ void main()
 
     // Compute reflectance.
     float reflectance = max(max(specularColor.r, specularColor.g), specularColor.b);
-
-
     // For typical incident reflectance range (between 4% to 100%) set the grazing reflectance to 100% for typical fresnel effect.
     // For very low reflectance range on highly diffuse objects (below 4%), incrementally reduce grazing reflecance to 0%.
     float reflectance90 = clamp(reflectance * 25.0, 0.0, 1.0);
     vec3 specularEnvironmentR0 = specularColor.rgb;
     vec3 specularEnvironmentR90 = vec3(1.0, 1.0, 1.0) * reflectance90;
-
-
     vec3 n = getNormal();                             // normal at surface point
     // vec3 v = vec3( 0.0, 0.0, 1.0 );        // Vector from surface point to camera
-    vec3 v = normalize(-v_position);                       // Vector from surface point to camera
+    vec3 v = normalize(-vPosition);                       // Vector from surface point to camera
     // vec3 l = normalize(u_LightDirection);             // Vector from surface point to light
     vec3 l = normalize(vec3( 1.0, 1.0, 1.0 ));             // Vector from surface point to light
     // vec3 l = vec3( 0.0, 0.0, 1.0 );             // Vector from surface point to light
@@ -295,19 +249,16 @@ void main()
     vec3 F = specularReflection(pbrInputs);
     float G = geometricOcclusion(pbrInputs);
     float D = microfacetDistribution(pbrInputs);
-
     // Calculation of analytical lighting contribution
     vec3 diffuseContrib = (1.0 - F) * diffuse(pbrInputs);
     vec3 specContrib = F * G * D / (4.0 * NdotL * NdotV);
     // vec3 color = NdotL * u_LightColor * (diffuseContrib + specContrib);
     vec3 color = NdotL * (diffuseContrib + specContrib);    // assume light color vec3(1, 1, 1)
 
-    // Calculate lighting contribution from image based lighting source (IBL)
+// Calculate lighting contribution from image based lighting source (IBL)
 // #ifdef USE_IBL
     color += getIBLContribution(pbrInputs, n, reflection);
 // #endif
-
-
     // Apply optional PBR terms for additional (optional) shading
 #ifdef HAS_OCCLUSIONMAP
     float ao = texture(u_occlusionTexture, v_uv).r;

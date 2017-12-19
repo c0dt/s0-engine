@@ -3,6 +3,18 @@ import Component from './Component';
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 import Camera from '../Camera';
 
+let fix = function(e) {
+  if (e.offsetX === undefined && e.offsetY === undefined) {
+    let target = e.target || e.srcElement;
+    let style = target.currentStyle || window.getComputedStyle(target, null);
+    let borderLeftWidth = parseInt(style['borderLeftWidth'], 10);
+    let borderTopWidth = parseInt(style['borderTopWidth'], 10);
+    let rect = target.getBoundingClientRect();
+    e.offsetX = e.clientX - borderLeftWidth - rect.left;
+    e.offsetY = e.clientY - borderTopWidth - rect.top;
+  }
+};
+
 export default class MouseController extends Component {
 
   constructor() {
@@ -26,30 +38,35 @@ export default class MouseController extends Component {
     e.preventDefault();
   }
 
-  _handlePointerDown(evt) {
-    evt.preventDefault();
+  _handlePointerDown(e) {
+    fix(e);
+    e.preventDefault();
     document.addEventListener("pointermove", this._handlePointerMove, false);
     document.addEventListener("pointerup", this._handlePointerUp, false);
     document.addEventListener("pointerleave", this._handlePointerUp, false);
 
-    this._pointers[evt.pointerId] = {
-      startX: evt.offsetX,
-      startY: evt.offsetY,
-      timestamp: Date.now
+    this._pointers[e.pointerId] = {
+      startX: e.offsetX,
+      startY: e.offsetY,
+      timestamp: Date.now()
     };
   }
 
-  _handlePointerMove(evt) {
-    evt.preventDefault();
-    if (this._pointers[evt.pointerId]) {
-      let pointer = this._pointers[evt.pointerId];
-      let dX = evt.offsetX - pointer.x;
-      let dY = evt.offsetY - pointer.y;
+  _handlePointerMove(e) {
+    fix(e);
+    e.preventDefault();
+    if (this._pointers[e.pointerId]) {
+      let pointer = this._pointers[e.pointerId];
+        
+      let dX = e.offsetX - pointer.x;
+      let dY = e.offsetY - pointer.y;
+
       pointer.dX = isNaN(dX) ? 0 : dX;
       pointer.dY = isNaN(dX) ? 0 : dY;
-      pointer.x = evt.offsetX;
-      pointer.y = evt.offsetY;
-      console.log(pointer);
+      pointer.x = e.offsetX;
+      pointer.y = e.offsetY;
+      pointer.dt = Date.now() - pointer.timestamp;
+      // console.log(pointer);
 
       // mat4.scale(this.target.worldOffset, mat4.create(), vec3.fromValues(2, 2, 2));
       let rotation = mat4.create();

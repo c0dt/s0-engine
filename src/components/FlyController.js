@@ -1,5 +1,5 @@
 import Component from './Component';
-import { vec3, vec4, quat, mat4 } from 'gl-matrix';
+import { vec3, /* vec4, quat, mat4 */ } from 'gl-matrix';
 import Camera from '../Camera';
 
 let pressed = {};
@@ -9,10 +9,10 @@ export default class FlyController extends Component {
   constructor() {
     super();
     
-    document.addEventListener('keydown', () => {
+    document.addEventListener('keydown', (event) => {
       pressed[event.code] = true;
     }, false);
-    document.addEventListener('keyup', () => {
+    document.addEventListener('keyup', (event) => {
       pressed[event.code] = false;
     }, false);
 
@@ -35,11 +35,11 @@ export default class FlyController extends Component {
     if (pressed["KeyW"]) {
       let front = vec3.create();
       vec3.scale(front, Camera.current.front, this._speed * dt);
-      vec3.add(Camera.current._position, Camera.current._position, front);  
+      vec3.add(Camera.current.position, Camera.current.position, front);  
     } else if (pressed["KeyS"]) {
       let front = vec3.create();
       vec3.scale(front, Camera.current.front, -this._speed * dt);
-      vec3.add(Camera.current._position, Camera.current._position, front);  
+      vec3.add(Camera.current.position, Camera.current.position, front);  
     }
 
     if (pressed["KeyA"] || pressed['ArrowLeft']) {
@@ -54,21 +54,21 @@ export default class FlyController extends Component {
     if (pressed["KeyI"]) {
       let front = vec3.create();
       vec3.scale(front, Camera.current.up, this._speed * dt);
-      vec3.add(Camera.current._position, Camera.current._position, front);  
+      vec3.add(Camera.current.position, Camera.current.position, front);  
     } else if (pressed["KeyK"]) {
       let front = vec3.create();
       vec3.scale(front, Camera.current.up, -this._speed * dt);
-      vec3.add(Camera.current._position, Camera.current._position, front);  
+      vec3.add(Camera.current.position, Camera.current.position, front);  
     }
 
     if (pressed["KeyJ"]) {
       let front = vec3.create();
       vec3.scale(front, Camera.current.right, -this._speed * dt);
-      vec3.add(Camera.current._position, Camera.current._position, front);  
+      vec3.add(Camera.current.position, Camera.current.position, front);  
     } else if (pressed["KeyL"]) {
       let front = vec3.create();
       vec3.scale(front, Camera.current.right, this._speed * dt);
-      vec3.add(Camera.current._position, Camera.current._position, front);  
+      vec3.add(Camera.current.position, Camera.current.position, front);  
     }
 
     if (pressed['ArrowUp']) {
