@@ -832,10 +832,6 @@
                 "index": 1,
                 "texCoord": 0
             },
-            "emissiveTexture": {
-                "index": 2,
-                "texCoord": 0
-            },
             "emissiveFactor": [
                 1.0,
                 1.0,
@@ -852,8 +848,12 @@
                     1.0,
                     1.0
                 ],
-                "metallicFactor": 0.100000001490116,
-                "roughnessFactor": 0.400000005960464
+                "metallicFactor": 1,
+                "roughnessFactor": 1,
+                "metallicRoughnessTexture": {
+                    "index": 2,
+                    "texCoord": 0
+                }
             }
         }
     ],

@@ -22,6 +22,5 @@ void main()
     vTexcoord0 = aTexCoords;
     vWorldPos = vec3(uM * vec4(aPosition, 1.0));
     vNormal = mat3(uVP) * aNormal;
-    
     gl_Position = uMVP * vec4(aPosition, 1.0);
 }

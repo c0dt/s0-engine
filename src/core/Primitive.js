@@ -34,7 +34,9 @@ export default class Primitive {
         attribute.createBuffer();
         attribute.bindData();
         let location = this._getLocationFromKey(key);
-        attribute.prepareVertexAttrib(location);
+        if (location !== undefined) {
+          attribute.prepareVertexAttrib(location);
+        }
       }
     }
 

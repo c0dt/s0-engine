@@ -173,6 +173,7 @@ export default class DeferredRenderer extends Renderer {
 
   composite() {
     this._shaderCompositePass.use();
+
     this._shaderCompositePass.setInt("gPosition", 0);
     this._shaderCompositePass.setInt("gNormal", 1);
     this._shaderCompositePass.setInt("gAlbedoSpec", 2);
@@ -220,7 +221,9 @@ export default class DeferredRenderer extends Renderer {
     let MVP = mat4.mul(mat4.create(), this.projection, MV);
     this.context = {
       MVP: MVP,
-      MV: MV
+      MV: MV,
+      M: item.worldMatrix,
+      V: this.view,
     };
     item.primitive.draw(this);
   }
@@ -228,9 +231,12 @@ export default class DeferredRenderer extends Renderer {
   //@TODO 
   useMaterial(material) {
     material.shader.use();
-    material.shader.setMat4("MVP", this.context.MVP);
+    material.shader.setMat4("uM", this.context.M);
+    material.shader.setMat4("uMVP", this.context.MVP);
+
     material.shader.setInt("uBaseColorTexture", 0);
-    // material.bindTextures();
+    material.shader.setInt("uNormalTexture", 1);
+    material.shader.setInt("uMetallicRoughnessTexture", 2);
 
     let texture = material.baseColorTextureInfo.texture;
     let index = material.baseColorTextureInfo.index;
@@ -243,6 +249,32 @@ export default class DeferredRenderer extends Renderer {
     gl.activeTexture(gl.TEXTURE0 + index);
     gl.bindTexture(gl.TEXTURE_2D, texture.texture);
     gl.bindSampler(index, sampler);
+
+    if (material.normalTextureInfo) {
+      texture = material.normalTextureInfo.texture;
+      index = material.normalTextureInfo.index;
+      if (texture.sampler) {
+        sampler = texture.sampler.sampler;
+      } else {
+        sampler = this.defaultSampler;
+      }
+      gl.activeTexture(gl.TEXTURE0 + index);
+      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+      gl.bindSampler(index, sampler);
+    }
+
+    if (material.metallicRoughnessTextureInfo) {
+      texture = material.metallicRoughnessTextureInfo.texture;
+      index = material.metallicRoughnessTextureInfo.index;
+      if (texture.sampler) {
+        sampler = texture.sampler.sampler;
+      } else {
+        sampler = this.defaultSampler;
+      }
+      gl.activeTexture(gl.TEXTURE0 + index);
+      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+      gl.bindSampler(index, sampler);
+    }
   }
 
   //@TODO 

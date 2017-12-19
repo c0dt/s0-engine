@@ -19,22 +19,20 @@ class S0 {
     canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
 
-    let gl = canvas.getContext('webgl2', { antialias: false });
+    let gl = canvas.getContext('webgl2', { antialias: true });
     let isWebGL2 = !!gl;
     if (!isWebGL2) {
-      document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
-      return;
+      console.warn('WebGL 2 is not available.  See https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation How to get a WebGL 2 implementation');
     }
     if (!gl.getExtension("EXT_color_buffer_float")) {
-      console.error("FLOAT color buffer not available");
-      document.body.innerHTML = "This example requires EXT_color_buffer_float which is unavailable on this system.";
+      console.warn("FLOAT color buffer not available");
+      console.warn("This example requires EXT_color_buffer_float which is unavailable on this system.");
     }
-
     window.gl = gl;
     // window.datGUI = new dat.GUI();
 
-    this.renderer = new ForwardRenderer(canvas.width, canvas.height);
-    // this.renderer = new DeferredRenderer(canvas.width, canvas.height);
+    // this.renderer = new ForwardRenderer(canvas.width, canvas.height);
+    this.renderer = new DeferredRenderer(canvas.width, canvas.height);
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     canvas.oncontextmenu = function(e) {
@@ -48,7 +46,7 @@ class S0 {
     mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
 
     this._camera = new Camera(this.projection, {
-      position: vec3.fromValues(0, 0.1, 0.5),
+      position: vec3.fromValues(0, 1, 5),
       yaw: -90.0,
       pitch: 0
     });
@@ -68,9 +66,9 @@ class S0 {
       // 'SimpleTownLite/models/road_straight_clear_mesh',
       // 'SimpleTownLite/models/road_straight_mesh',
       // 'SimpleTownLite/models/store_small_mesh',
-      // 'Ganfaul',
+      'Ganfaul',
       // 'ElvenRuins'
-      'Miniscene'
+      // 'Miniscene'
     ];
     urls.forEach((url) => {
       ResoucePipeline.loadAsync(`${url}/model.gltf`, {}).then(
