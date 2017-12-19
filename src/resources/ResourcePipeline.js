@@ -12,6 +12,7 @@ class ResourcePipeline {
       "bin": GLTFBufferLoader,
       "jpg": ImageLoader,
       "png": ImageLoader,
+      "gif": ImageLoader,
     };  
   }
 

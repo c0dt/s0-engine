@@ -114,18 +114,19 @@ export default class ForwardRenderer extends Renderer {
     material.shader.setMat4('uMVP', this.context.MVP);
     material.shader.setInt('uBaseColorTexture', 0);
     // material.bindTextures();
-
-    let texture = material.baseColorTextureInfo.texture;
-    let index = material.baseColorTextureInfo.index;
-    let sampler;
-    if (texture.sampler) {
-      sampler = texture.sampler.sampler;
-    } else {
-      sampler = this.defaultSampler;
+    if (material.baseColorTextureInfo) {
+      let texture = material.baseColorTextureInfo.texture;
+      let index = material.baseColorTextureInfo.index;
+      let sampler;
+      if (texture.sampler) {
+        sampler = texture.sampler.sampler;
+      } else {
+        sampler = this.defaultSampler;
+      }
+      gl.activeTexture(gl.TEXTURE0 + index);
+      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+      gl.bindSampler(index, sampler);
     }
-    gl.activeTexture(gl.TEXTURE0 + index);
-    gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-    gl.bindSampler(index, sampler);
   }
 
   //@TODO 

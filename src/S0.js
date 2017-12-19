@@ -33,8 +33,8 @@ class S0 {
     window.gl = gl;
     // window.datGUI = new dat.GUI();
 
-    // this.renderer = new ForwardRenderer(canvas.width, canvas.height);
-    this.renderer = new DeferredRenderer(canvas.width, canvas.height);
+    this.renderer = new ForwardRenderer(canvas.width, canvas.height);
+    // this.renderer = new DeferredRenderer(canvas.width, canvas.height);
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     canvas.oncontextmenu = function(e) {
@@ -62,18 +62,22 @@ class S0 {
       // 'SimpleTownLite/models/bin_mesh',
       // 'SimpleTownLite/models/dumpster_mesh',
       // 'SimpleTownLite/models/hotdog_truck_seperate',
-      'SimpleTownLite/models/pizza_car_seperate',
+      // 'SimpleTownLite/models/pizza_car_seperate',
       // 'SimpleTownLite/models/pizza_shop',
       // 'SimpleTownLite/models/road_square_mesh',
       // 'SimpleTownLite/models/road_straight_clear_mesh',
       // 'SimpleTownLite/models/road_straight_mesh',
       // 'SimpleTownLite/models/store_small_mesh',
+      // 'Ganfaul',
+      // 'ElvenRuins'
+      'Miniscene'
     ];
     urls.forEach((url) => {
       ResoucePipeline.loadAsync(`${url}/model.gltf`, {}).then(
         (asset) => {
           this._scenes.push(asset);
           this.mouseController.target = asset.root;
+          console.log(asset);
           return asset;
         }
       );

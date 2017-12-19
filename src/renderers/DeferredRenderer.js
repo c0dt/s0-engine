@@ -14,15 +14,13 @@ export default class DeferredRenderer extends Renderer {
   constructor(width, height) {
     super(width, height);
     this._items = [];
-    // console.log(gl.getParameter(gl.MAX_COLOR_ATTACHMENTS_WEBGL));
-    // console.log(gl.getParameter(gl.MAX_DRAW_BUFFERS_WEBGL));
 
-    this.initializeGBuffer();
+    this._initializeGBuffer();
 
     this._quad = new Quad();
   }
 
-  initializeGBuffer() {
+  _initializeGBuffer() {
     this._gBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._gBuffer);
 
@@ -141,41 +139,39 @@ export default class DeferredRenderer extends Renderer {
   }
 
   render(scenes, camera) {
-    this.renderGeometryPass(scenes, camera);
-    this.renderComposite();
+    this.geometryPass(scenes, camera);
+    this.lightingPass();
+    this.composite();
   }
 
-  renderGeometryPass(scenes, camera) {
+  geometryPass(scenes, camera) {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._gBuffer);
+    gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     scenes.forEach((scene) => {
       let length = this._items.length;
-    
       if (length === 0) {
         let root = scene.root;
         this._visitNode(root, mat4.create());
       }
-  
       this.projection = camera.projection;
       this.view = camera.view;
-      
       length = this._items.length;
       for (let i = 0; i < length; i++) {
         this._render(this._items[i]);
       }
-  
       this._items = [];
     });
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
-  renderLightingPass() {
+  lightingPass() {
     
   }
 
-  renderComposite() {
+  composite() {
     this._shaderCompositePass.use();
     this._shaderCompositePass.setInt("gPosition", 0);
     this._shaderCompositePass.setInt("gNormal", 1);
