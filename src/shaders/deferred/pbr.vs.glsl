@@ -7,6 +7,7 @@ precision highp int;
 
 uniform mat4 uM;
 uniform mat4 uVP;
+uniform mat4 uMVP;
 
 layout(location = POSITION_LOCATION) in vec3 aPosition;
 layout(location = NORMAL_LOCATION) in vec3 aNormal;
@@ -22,5 +23,5 @@ void main()
     vWorldPos = vec3(uM * vec4(aPosition, 1.0));
     vNormal = mat3(uVP) * aNormal;
     
-    gl_Position =  uVP * vec4(vWorldPos, 1.0);
+    gl_Position = uMVP * vec4(aPosition, 1.0);
 }

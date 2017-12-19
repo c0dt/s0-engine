@@ -19,7 +19,7 @@ class S0 {
     canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
 
-    let gl = canvas.getContext('webgl2', { antialias: true });
+    let gl = canvas.getContext('webgl2', { antialias: false });
     let isWebGL2 = !!gl;
     if (!isWebGL2) {
       document.getElementById('info').innerHTML = 'WebGL 2 is not available.  See <a href="https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation">How to get a WebGL 2 implementation</a>';
@@ -33,6 +33,7 @@ class S0 {
     window.gl = gl;
     // window.datGUI = new dat.GUI();
 
+    // this.renderer = new ForwardRenderer(canvas.width, canvas.height);
     this.renderer = new DeferredRenderer(canvas.width, canvas.height);
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);

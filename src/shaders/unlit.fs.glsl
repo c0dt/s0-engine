@@ -5,11 +5,11 @@ precision highp int;
 
 layout(location = FRAG_COLOR_LOCATION) out vec4 color;
 
-uniform sampler2D u_baseColorTexture;
+uniform sampler2D uBaseColorTexture;
 
-in vec2 v_texcoord0;
+in vec2 vTexcoord0;
 
 void main()
 {
-    color = texture(u_baseColorTexture, v_texcoord0);
+    color = texture(uBaseColorTexture, vTexcoord0);
 }

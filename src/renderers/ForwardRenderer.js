@@ -111,8 +111,8 @@ export default class ForwardRenderer extends Renderer {
   //@TODO 
   useMaterial(material) {
     material.shader.use();
-    material.shader.setMat4("MVP", this.context.MVP);
-    material.shader.setInt("uBaseColorTexture", 0);
+    material.shader.setMat4('uMVP', this.context.MVP);
+    material.shader.setInt('uBaseColorTexture', 0);
     // material.bindTextures();
 
     let texture = material.baseColorTextureInfo.texture;

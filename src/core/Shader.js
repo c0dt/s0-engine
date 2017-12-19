@@ -173,35 +173,35 @@ export default class Shader {
       this._program.uniformBlockIndices.JointMatrix = gl.getUniformBlockIndex(this._program, "JointMatrix");
     }
 
-    this._uniformLocations.MVP = gl.getUniformLocation(this._program, 'u_MVP');
-    this._uniformLocations.MVNormal = gl.getUniformLocation(this._program, 'u_MVNormal');
-    this._uniformLocations.MV = gl.getUniformLocation(this._program, 'u_MV');
-    this._uniformLocations.baseColorFactor = gl.getUniformLocation(this._program, 'u_baseColorFactor');
-    this._uniformLocations.metallicFactor = gl.getUniformLocation(this._program, 'u_metallicFactor');
-    this._uniformLocations.roughnessFactor = gl.getUniformLocation(this._program, 'u_roughnessFactor');
+    this._uniformLocations.MVP = gl.getUniformLocation(this._program, 'uMVP');
+    this._uniformLocations.MVNormal = gl.getUniformLocation(this._program, 'uMVNormal');
+    this._uniformLocations.MV = gl.getUniformLocation(this._program, 'uMV');
+    this._uniformLocations.baseColorFactor = gl.getUniformLocation(this._program, 'uBaseColorFactor');
+    this._uniformLocations.metallicFactor = gl.getUniformLocation(this._program, 'uMetallicFactor');
+    this._uniformLocations.roughnessFactor = gl.getUniformLocation(this._program, 'uRoughnessFactor');
 
     if (this.hasBaseColorMap()) {
-      this._uniformLocations.baseColorTexture = gl.getUniformLocation(this._program, 'u_baseColorTexture');
+      this._uniformLocations.baseColorTexture = gl.getUniformLocation(this._program, 'uBaseColorTexture');
     }
     if (this.hasNormalMap()) {
-      this._uniformLocations.normalTexture = gl.getUniformLocation(this._program, 'u_normalTexture');
-      this._uniformLocations.normalTextureScale = gl.getUniformLocation(this._program, 'u_normalTextureScale');
+      this._uniformLocations.normalTexture = gl.getUniformLocation(this._program, 'uNormalTexture');
+      this._uniformLocations.normalTextureScale = gl.getUniformLocation(this._program, 'uNormalTextureScale');
     }
     if (this.hasMetalRoughnessMap()) {
-      this._uniformLocations.metallicRoughnessTexture = gl.getUniformLocation(this._program, 'u_metallicRoughnessTexture');
+      this._uniformLocations.metallicRoughnessTexture = gl.getUniformLocation(this._program, 'uMetallicRoughnessTexture');
     }
     if (this.hasOcclusionMap()) {
-      this._uniformLocations.occlusionTexture = gl.getUniformLocation(this._program, 'u_occlusionTexture');
-      this._uniformLocations.occlusionStrength = gl.getUniformLocation(this._program, 'u_occlusionStrength');
+      this._uniformLocations.occlusionTexture = gl.getUniformLocation(this._program, 'uOcclusionTexture');
+      this._uniformLocations.occlusionStrength = gl.getUniformLocation(this._program, 'uOcclusionStrength');
     }
     if (this.hasEmissiveMap()) {
-      this._uniformLocations.emissiveTexture = gl.getUniformLocation(this._program, 'u_emissiveTexture');
-      this._uniformLocations.emissiveFactor = gl.getUniformLocation(this._program, 'u_emissiveFactor');
+      this._uniformLocations.emissiveTexture = gl.getUniformLocation(this._program, 'uEmissiveTexture');
+      this._uniformLocations.emissiveFactor = gl.getUniformLocation(this._program, 'uEmissiveFactor');
     }
 
-    this._uniformLocations.diffuseEnvSampler = gl.getUniformLocation(this._program, 'u_DiffuseEnvSampler');
-    this._uniformLocations.specularEnvSampler = gl.getUniformLocation(this._program, 'u_SpecularEnvSampler');
-    this._uniformLocations.brdfLUT = gl.getUniformLocation(this._program, 'u_brdfLUT');
+    this._uniformLocations.diffuseEnvSampler = gl.getUniformLocation(this._program, 'uDiffuseEnvSampler');
+    this._uniformLocations.specularEnvSampler = gl.getUniformLocation(this._program, 'uSpecularEnvSampler');
+    this._uniformLocations.brdfLUT = gl.getUniformLocation(this._program, 'uBrdfLUT');
 
     // set static uniform values in cubemap
     // gl.useProgram(this._program);
@@ -219,11 +219,17 @@ export default class Shader {
 
   setMat4(type, mat4) {
     let location = this._uniformLocations[type];
+    if (!location) {
+      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    }
     gl.uniformMatrix4fv(location, false, mat4);
   }
 
   setInt(type, value) {
     let location = this._uniformLocations[type];
+    if (!location) {
+      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    }
     gl.uniform1i(location, value);
   }
 }

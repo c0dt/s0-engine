@@ -11,8 +11,9 @@ uniform sampler2D gPosition;
 uniform sampler2D gNormal;
 uniform sampler2D gAlbedoSpec;
 uniform sampler2D gMetallicRoughness;
+uniform sampler2D depthTexture;
 
 void main()
 {
-    color = texture(gAlbedoSpec, vTexCoords);
+    color = vec4(vec3(texture(gMetallicRoughness, vTexCoords)), 1.0);
 }

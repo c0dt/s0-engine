@@ -102,17 +102,31 @@ export default class DeferredRenderer extends Renderer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT3, gl.TEXTURE_2D, this._gMetallicRoughness, 0);
 
+    this._depthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.DEPTH_COMPONENT16,
+        this._viewWith,
+        this._viewHeight,
+        0,
+        gl.DEPTH_COMPONENT,
+        gl.UNSIGNED_SHORT,
+        null
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
+
     gl.drawBuffers([
       gl.COLOR_ATTACHMENT0,
       gl.COLOR_ATTACHMENT1,
       gl.COLOR_ATTACHMENT2,
       gl.COLOR_ATTACHMENT3
     ]);
-
-    let depthRenderBuffer = gl.createRenderbuffer();
-    gl.bindRenderbuffer(gl.RENDERBUFFER, depthRenderBuffer);
-    gl.renderbufferStorage(gl.RENDERBUFFER, gl.DEPTH_COMPONENT16, this._viewWith, this._viewHeight);
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRenderBuffer);
 
     if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
       console.error('Framebuffer not complete!');
@@ -128,7 +142,6 @@ export default class DeferredRenderer extends Renderer {
 
   render(scenes, camera) {
     this.renderGeometryPass(scenes, camera);
-
     this.renderComposite();
   }
 
@@ -163,9 +176,13 @@ export default class DeferredRenderer extends Renderer {
   }
 
   renderComposite() {
-
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     this._shaderCompositePass.use();
+    this._shaderCompositePass.setInt("gPosition", 0);
+    this._shaderCompositePass.setInt("gNormal", 1);
+    this._shaderCompositePass.setInt("gAlbedoSpec", 2);
+    this._shaderCompositePass.setInt("gMetallicRoughness", 3);
+    this._shaderCompositePass.setInt("depthTexture", 4);
+
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._gPosition);
     gl.activeTexture(gl.TEXTURE1);
@@ -174,13 +191,10 @@ export default class DeferredRenderer extends Renderer {
     gl.bindTexture(gl.TEXTURE_2D, this._gAlbedoSpec);
     gl.activeTexture(gl.TEXTURE3);
     gl.bindTexture(gl.TEXTURE_2D, this._gMetallicRoughness);
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
 
     this._quad.draw();
-
-    // gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._gBuffer);
-    // gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
-    // gl.blitFramebuffer(0, 0, this._viewWith, this._viewHeight, 0, 0, this._viewWith, this._viewHeight, gl.DEPTH_BUFFER_BIT, gl.NEAREST);
-    // gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
   //

@@ -5,16 +5,16 @@
 precision highp float;
 precision highp int;
 
-uniform mat4 u_MVP;
+uniform mat4 uMVP;
 
-layout(location = POSITION_LOCATION) in vec3 position;
-layout(location = NORMAL_LOCATION) in vec3 normal;
-layout(location = TEXCOORD_0_LOCATION) in vec2 texcoord0;
+layout(location = POSITION_LOCATION) in vec3 aPosition;
+layout(location = NORMAL_LOCATION) in vec3 aNormal;
+layout(location = TEXCOORD_0_LOCATION) in vec2 aTexcoord0;
 
-out vec2 v_texcoord0;
+out vec2 vTexcoord0;
 
 void main()
 {
-    gl_Position = u_MVP * vec4(position, 1.0);
-    v_texcoord0 = texcoord0;
+    gl_Position = uMVP * vec4(aPosition, 1.0);
+    vTexcoord0 = aTexcoord0;
 }
