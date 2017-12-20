@@ -1,11 +1,17 @@
 import Renderer from './Renderer';
 import { /* vec3, vec4, quat,*/ mat4 } from 'gl-matrix';
+import Shader from '../core/Shader';
+
+import vsSkyBox from '../shaders/forward/cube-map.vs.glsl';
+import fsSkyBox from '../shaders/forward/cube-map.fs.glsl';
+
+import Cube from '../primitives/Cube';
 
 export default class ForwardRenderer extends Renderer {
   constructor(width, height) {
     super(width, height);
     gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LESS);
+    gl.depthFunc(gl.LEQUAL);
     this.defaultSampler = gl.createSampler();
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -17,6 +23,10 @@ export default class ForwardRenderer extends Renderer {
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_MODE, gl.NONE);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
     this._items = [];
+
+    this._cube = new Cube();
+    this._shaderSkybox = new Shader(vsSkyBox, fsSkyBox);
+    this._shaderSkybox.compile();
   }
 
   activeAndBindTexture(textureInfo) {
@@ -73,6 +83,18 @@ export default class ForwardRenderer extends Renderer {
   
       this._items = [];
     });
+
+    let MVP = mat4.create();
+    mat4.copy(MVP, camera.view);
+    MVP[12] = 0.0;
+    MVP[13] = 0.0;
+    MVP[14] = 0.0;
+    MVP[15] = 1.0;
+    mat4.mul(MVP, camera.projection, MVP);
+    this._shaderSkybox.use();
+    this._shaderSkybox.setMat4('uMVP', MVP);
+    this._shaderSkybox.setInt('u_environment', 14);
+    this._cube.draw();
   }
 
   //

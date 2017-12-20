@@ -103,7 +103,7 @@ vec3 getNormal()
     vec3 b = normalize(cross(ng, t));
     mat3 tbn = mat3(t, b, ng);
 #else // HAS_TANGENTS
-    mat3 tbn = v_TBN;
+    mat3 tbn = vTBN;
 #endif
 
 #ifdef HAS_NORMALMAP
