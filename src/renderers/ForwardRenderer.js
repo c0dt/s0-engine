@@ -7,6 +7,8 @@ import fsSkyBox from '../shaders/forward/cube-map.fs.glsl';
 
 import Cube from '../primitives/Cube';
 
+import IBLManager from '../managers/IBLManager';
+
 export default class ForwardRenderer extends Renderer {
   constructor(width, height) {
     super(width, height);
@@ -73,6 +75,7 @@ export default class ForwardRenderer extends Renderer {
   
       this.projection = camera.projection;
       this.view = camera.view;
+      this.cameraPosition = camera.position;
       length = this._items.length;
       
       if (length) {
@@ -84,17 +87,22 @@ export default class ForwardRenderer extends Renderer {
       this._items = [];
     });
 
-    let MVP = mat4.create();
-    mat4.copy(MVP, camera.view);
-    MVP[12] = 0.0;
-    MVP[13] = 0.0;
-    MVP[14] = 0.0;
-    MVP[15] = 1.0;
-    mat4.mul(MVP, camera.projection, MVP);
-    this._shaderSkybox.use();
-    this._shaderSkybox.setMat4('uMVP', MVP);
-    this._shaderSkybox.setInt('u_environment', 14);
-    this._cube.draw();
+    if (scenes.length && IBLManager.isReady) {
+      let MVP = mat4.create();
+      mat4.copy(MVP, camera.view);
+      MVP[12] = 0.0;
+      MVP[13] = 0.0;
+      MVP[14] = 0.0;
+      MVP[15] = 1.0;
+      mat4.mul(MVP, camera.projection, MVP);
+      this._shaderSkybox.use();
+      this._shaderSkybox.setMat4('uMVP', MVP);
+      this._shaderSkybox.setInt('u_environment', 0);
+      // IBLManager.activeAndBindTextures();
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
+      this._cube.draw();
+    }
   }
 
   //
@@ -125,7 +133,9 @@ export default class ForwardRenderer extends Renderer {
     this.context = {
       MVP: MVP,
       MV: MV,
-      activeAndBindTexture: this.activeAndBindTexture
+      M: item.worldMatrix,
+      activeAndBindTexture: this.activeAndBindTexture,
+      cameraPosition: this.cameraPosition
     };
     item.primitive.draw(this);
   }

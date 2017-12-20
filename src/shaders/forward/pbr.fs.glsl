@@ -43,6 +43,8 @@ uniform sampler2D uOcclusionTexture;
 uniform float uOcclusionStrength;
 #endif
 
+uniform vec3 uCameraPosition;
+
 in vec3 vPosition;
 in vec3 vNormal;
 in vec2 vTexcoord;
@@ -88,31 +90,45 @@ vec4 SRGBtoLINEAR(vec4 srgbIn)
 vec3 getNormal()
 {
     // Retrieve the tangent space matrix
-#ifndef HAS_TANGENTS
-    vec3 pos_dx = dFdx(vPosition);
-    vec3 pos_dy = dFdy(vPosition);
-    vec3 tex_dx = dFdx(vec3(vTexcoord, 0.0));
-    vec3 tex_dy = dFdy(vec3(vTexcoord, 0.0));
-    vec3 t = (tex_dy.t * pos_dx - tex_dx.t * pos_dy) / (tex_dx.s * tex_dy.t - tex_dy.s * tex_dx.t);
-#ifdef HAS_NORMALS
-    vec3 ng = normalize(vNormal);
-#else
-    vec3 ng = cross(pos_dx, pos_dy);
-#endif
-    t = normalize(t - ng * dot(ng, t));
-    vec3 b = normalize(cross(ng, t));
-    mat3 tbn = mat3(t, b, ng);
-#else // HAS_TANGENTS
-    mat3 tbn = vTBN;
-#endif
+// #ifndef HAS_TANGENTS
+//     vec3 pos_dx = dFdx(vPosition);
+//     vec3 pos_dy = dFdy(vPosition);
+//     vec3 tex_dx = dFdx(vec3(vTexcoord, 0.0));
+//     vec3 tex_dy = dFdy(vec3(vTexcoord, 0.0));
+//     vec3 t = (tex_dy.t * pos_dx - tex_dx.t * pos_dy) / (tex_dx.s * tex_dy.t - tex_dy.s * tex_dx.t);
+// #ifdef HAS_NORMALS
+//     vec3 ng = normalize(vNormal);
+// #else
+//     vec3 ng = cross(pos_dx, pos_dy);
+// #endif
+//     t = normalize(t - ng * dot(ng, t));
+//     vec3 b = normalize(cross(ng, t));
+//     mat3 tbn = mat3(t, b, ng);
+// #else // HAS_TANGENTS
+//     mat3 tbn = vTBN;
+// #endif
 
-#ifdef HAS_NORMALMAP
-    vec3 n = texture(uNormalTexture, vTexcoord).rgb;
-    n = normalize(tbn * ((2.0 * n - 1.0) * vec3(uNormalTextureScale, uNormalTextureScale, 1.0)));
-#else
-    vec3 n = tbn[2].xyz;
-#endif
-    return n;
+// #ifdef HAS_NORMALMAP
+//     vec3 n = texture(uNormalTexture, vTexcoord).rgb;
+//     n = normalize(tbn * ((2.0 * n - 1.0) * vec3(uNormalTextureScale, uNormalTextureScale, 1.0)));
+// #else
+//     vec3 n = tbn[2].xyz;
+// #endif
+//     return n;
+
+    vec3 tangentNormal = texture(uNormalTexture, vTexcoord).xyz * 2.0 - 1.0;
+    
+    vec3 Q1  = dFdx(vPosition);
+    vec3 Q2  = dFdy(vPosition);
+    vec2 st1 = dFdx(vTexcoord);
+    vec2 st2 = dFdy(vTexcoord);
+    
+    vec3 N   = normalize(vNormal);
+    vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+    
+    return normalize(TBN * tangentNormal);
 }
 
 vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
@@ -212,7 +228,7 @@ void main()
     vec3 n = getNormal();                             // normal at surface point
     
     // vec3 v = vec3( 0.0, 0.0, 1.0 );        // Vector from surface point to camera
-    vec3 v = normalize(-vPosition);                       // Vector from surface point to camera
+    vec3 v = normalize(uCameraPosition-vPosition);                       // Vector from surface point to camera
     // vec3 l = normalize(u_LightDirection);             // Vector from surface point to light
     vec3 l = normalize(vec3( 1.0, 1.0, 1.0 ));             // Vector from surface point to light
     // vec3 l = vec3( 0.0, 0.0, 1.0 );             // Vector from surface point to light

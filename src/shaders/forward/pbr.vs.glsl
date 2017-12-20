@@ -11,7 +11,7 @@ precision highp float;
 precision highp int;
 
 uniform mat4 uMVP;
-uniform mat4 uMV;
+uniform mat4 uM;
 uniform mat4 uMVNormal;
 
 #ifdef HAS_SKIN
@@ -57,12 +57,12 @@ void main()
     vTexcoord = aTexcoord;
 #ifdef HAS_SKIN
     vNormal = normalize(( uMVNormal * transpose(inverse(skinMatrix)) * vec4(aNormal, 0)).xyz);
-    vec4 pos = uMV * skinMatrix * vec4(aPosition, 1.0);
+    vec4 pos = uM * skinMatrix * vec4(aPosition, 1.0);
     gl_Position = uMVP * skinMatrix * vec4(aPosition, 1.0);
 #else
-    vNormal = normalize((uMVNormal * vec4(aNormal, 0)).xyz);
-    vec4 pos = uMV * vec4(aPosition, 1.0);
+    vNormal = mat3(uM) * aNormal;
+    vec4 pos = uM * vec4(aPosition, 1.0);
     gl_Position = uMVP * vec4(aPosition, 1.0);
 #endif
-    vPosition = vec3(pos.xyz) / pos.w;
+    vPosition = vec3(pos);
 }

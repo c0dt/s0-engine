@@ -244,4 +244,12 @@ export default class Shader {
     }
     gl.uniform4fv(location, value);
   }
+
+  set3fv(type, value) {
+    let location = this._uniformLocations[type];
+    if (!location) {
+      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    }
+    gl.uniform3fv(location, value);
+  }
 }

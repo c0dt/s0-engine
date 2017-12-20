@@ -76,8 +76,10 @@ export default class Material {
 
   use(context) {
     this.shader.use();
+    this.shader.setMat4('uM', context.M);
     this.shader.setMat4('uMV', context.MV);
     this.shader.setMat4('uMVP', context.MVP);
+    this.shader.set3fv('uCameraPosition', context.cameraPosition);
 
     this.shader.set4fv('uBaseColorFactor', this._pbrMetallicRoughness.baseColorFactor);
 

@@ -27,6 +27,10 @@ class IBLManager {
     return this._brdfLUT;
   }
 
+  get isReady() {
+    return this._specularEnvSampler && this._diffuseEnvSampler && this._brdfLUT;
+  }
+
   activeAndBindTextures() {
     gl.activeTexture(gl.TEXTURE0 + 14);
     gl.bindTexture(gl.TEXTURE_CUBE_MAP, this._specularEnvSampler);
