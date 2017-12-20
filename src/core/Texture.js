@@ -1,5 +1,5 @@
 export default class Texture {
-  constructor({ name, sampler, source }) {
+  constructor({ name, source, sampler }) {
     this._name = name;
     this._sampler = sampler;
     this._source = source;
@@ -30,14 +30,11 @@ export default class Texture {
     this._texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._texture);
     gl.texImage2D(
-        gl.TEXTURE_2D,  // assumed
-        0,        // Level of details
-        // gl.RG16F, // Format
-        // gl.RG,
-        gl.RGBA, // Format
+        gl.TEXTURE_2D,
+        0,
         gl.RGBA,
-        gl.UNSIGNED_BYTE, // Size of each channel
-        // gl.FLOAT,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
         this._source
     );
     // gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);

@@ -1,0 +1,10 @@
+{
+    "source":{
+        "right" : "bakedDiffuse_01.jpg",
+        "left" : "bakedDiffuse_02.jpg",
+        "top" : "bakedDiffuse_03.jpg",
+        "bottom" : "bakedDiffuse_04.jpg",
+        "front" : "bakedDiffuse_05.jpg",
+        "back" : "bakedDiffuse_06.jpg"
+    }
+}

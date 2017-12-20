@@ -68,47 +68,44 @@ struct PBRInfo
     vec3 specularColor;           // color contribution from specular lighting
 };
 
-
-// vec3 applyNormalMap(vec3 geomnor, vec3 normap) {
-//     normap = normap * 2.0 - 1.0;
-//     vec3 up = normalize(vec3(0.01, 1, 0.01));
-//     vec3 surftan = normalize(cross(geomnor, up));
-//     vec3 surfbinor = cross(geomnor, surftan);
-//     return normap.y * surftan * u_normalTextureScale + normap.x * surfbinor * u_normalTextureScale + normap.z * geomnor;
-// }
-
-
-// vec3 getNormal()
-// {
-
-// #ifdef HAS_NORMALMAP
-// #ifdef HAS_TANGENTS
-//     vec3 n = texture(u_normalTexture, v_uv).rgb;
-//     n = normalize(v_TBN * (2.0 * n - 1.0) - vec3(u_normalTextureScale, u_normalTextureScale, 1.0));
-// #else
-//     vec3 n = applyNormalMap( v_normal, texture(u_normalTexture, v_uv).rgb );
-// #endif
-// #else
-//     vec3 n = v_normal;
-// #endif
-//     return n;
-
-// #endif
-// }
+vec4 SRGBtoLINEAR(vec4 srgbIn)
+{
+    #ifdef MANUAL_SRGB
+    #ifdef SRGB_FAST_APPROXIMATION
+    vec3 linOut = pow(srgbIn.xyz,vec3(2.2));
+    #else //SRGB_FAST_APPROXIMATION
+    vec3 bLess = step(vec3(0.04045),srgbIn.xyz);
+    vec3 linOut = mix( srgbIn.xyz/vec3(12.92), pow((srgbIn.xyz+vec3(0.055))/vec3(1.055),vec3(2.4)), bLess );
+    #endif //SRGB_FAST_APPROXIMATION
+    return vec4(linOut,srgbIn.w);;
+    #else //MANUAL_SRGB
+    return srgbIn;
+    #endif //MANUAL_SRGB
+}
 
 // Find the normal for this fragment, pulling either from a predefined normal map
 // or from the interpolated mesh normal and tangent attributes.
 vec3 getNormal()
 {
+    // Retrieve the tangent space matrix
+#ifndef HAS_TANGENTS
     vec3 pos_dx = dFdx(vPosition);
     vec3 pos_dy = dFdy(vPosition);
     vec3 tex_dx = dFdx(vec3(vTexcoord, 0.0));
     vec3 tex_dy = dFdy(vec3(vTexcoord, 0.0));
     vec3 t = (tex_dy.t * pos_dx - tex_dx.t * pos_dy) / (tex_dx.s * tex_dy.t - tex_dy.s * tex_dx.t);
-    vec3 ng = vNormal;
+#ifdef HAS_NORMALS
+    vec3 ng = normalize(vNormal);
+#else
+    vec3 ng = cross(pos_dx, pos_dy);
+#endif
     t = normalize(t - ng * dot(ng, t));
     vec3 b = normalize(cross(ng, t));
     mat3 tbn = mat3(t, b, ng);
+#else // HAS_TANGENTS
+    mat3 tbn = v_TBN;
+#endif
+
 #ifdef HAS_NORMALMAP
     vec3 n = texture(uNormalTexture, vTexcoord).rgb;
     n = normalize(tbn * ((2.0 * n - 1.0) * vec3(uNormalTextureScale, uNormalTextureScale, 1.0)));
@@ -125,9 +122,9 @@ vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
     float mipCount = 10.0; // resolution of 256x256
     float lod = (pbrInputs.perceptualRoughness * mipCount);
     // retrieve a scale and bias to F0. See [1], Figure 3
-    vec3 brdf = texture(uBrdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness)).rgb;
-    vec3 diffuseLight = texture(uDiffuseEnvSampler, n).rgb;
-    vec3 specularLight = texture(uSpecularEnvSampler, reflection, lod).rgb;
+    vec3 brdf = SRGBtoLINEAR(texture(uBrdfLUT, vec2(pbrInputs.NdotV, 1.0 - pbrInputs.perceptualRoughness))).rgb;
+    vec3 diffuseLight = SRGBtoLINEAR(texture(uDiffuseEnvSampler, n)).rgb;
+    vec3 specularLight = SRGBtoLINEAR(texture(uSpecularEnvSampler, reflection, lod)).rgb;
     vec3 diffuse = diffuseLight * pbrInputs.diffuseColor;
     vec3 specular = specularLight * (pbrInputs.specularColor * brdf.x + brdf.y);
     return diffuse + specular;
@@ -174,11 +171,6 @@ float microfacetDistribution(PBRInfo pbrInputs)
     return roughnessSq / (M_PI * f * f);
 }
 
-
-
-
-
-
 void main()
 {
     float perceptualRoughness = uRoughnessFactor;
@@ -199,7 +191,7 @@ void main()
 
     // The albedo may be defined from a base texture or a flat color
 #ifdef HAS_BASECOLORMAP
-    vec4 baseColor = texture(uBaseColorTexture, vTexcoord) * uBaseColorFactor;
+    vec4 baseColor = SRGBtoLINEAR(texture(uBaseColorTexture, vTexcoord)) * uBaseColorFactor;
 #else
     vec4 baseColor = uBaseColorFactor;
 #endif
@@ -207,15 +199,18 @@ void main()
     vec3 diffuseColor = baseColor.rgb * (vec3(1.0) - f0);
     diffuseColor *= 1.0 - metallic;
     vec3 specularColor = mix(f0, baseColor.rgb, metallic);
-
+    
     // Compute reflectance.
     float reflectance = max(max(specularColor.r, specularColor.g), specularColor.b);
+    
     // For typical incident reflectance range (between 4% to 100%) set the grazing reflectance to 100% for typical fresnel effect.
     // For very low reflectance range on highly diffuse objects (below 4%), incrementally reduce grazing reflecance to 0%.
     float reflectance90 = clamp(reflectance * 25.0, 0.0, 1.0);
+    
     vec3 specularEnvironmentR0 = specularColor.rgb;
     vec3 specularEnvironmentR90 = vec3(1.0, 1.0, 1.0) * reflectance90;
     vec3 n = getNormal();                             // normal at surface point
+    
     // vec3 v = vec3( 0.0, 0.0, 1.0 );        // Vector from surface point to camera
     vec3 v = normalize(-vPosition);                       // Vector from surface point to camera
     // vec3 l = normalize(u_LightDirection);             // Vector from surface point to light
@@ -261,26 +256,14 @@ void main()
 // #endif
     // Apply optional PBR terms for additional (optional) shading
 #ifdef HAS_OCCLUSIONMAP
-    float ao = texture(u_occlusionTexture, v_uv).r;
+    float ao = texture(uOcclusionTexture, v_uv).r;
     color = mix(color, color * ao, u_occlusionStrength);
 #endif
 
 #ifdef HAS_EMISSIVEMAP
-    vec3 emissive = texture(u_emissiveTexture, v_uv).rgb * u_emissiveFactor;
+    vec3 emissive = SRGBtoLINEAR(texture(uEmissiveTexture, v_uv)).rgb * u_emissiveFactor;
     color += emissive;
 #endif
-
-    // // This section uses mix to override final color for reference app visualization
-    // // of various parameters in the lighting equation.
-    // color = mix(color, F, u_ScaleFGDSpec.x);
-    // color = mix(color, vec3(G), u_ScaleFGDSpec.y);
-    // color = mix(color, vec3(D), u_ScaleFGDSpec.z);
-    // color = mix(color, specContrib, u_ScaleFGDSpec.w);
-
-    // color = mix(color, diffuseContrib, u_ScaleDiffBaseMR.x);
-    // color = mix(color, baseColor.rgb, u_ScaleDiffBaseMR.y);
-    // color = mix(color, vec3(metallic), u_ScaleDiffBaseMR.z);
-    // color = mix(color, vec3(perceptualRoughness), u_ScaleDiffBaseMR.w);
-
+    
     frag_color = vec4(color, baseColor.a);
 }

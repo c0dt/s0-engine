@@ -195,16 +195,16 @@ export default class Shader {
       this._uniformLocations.emissiveFactor = gl.getUniformLocation(this._program, 'uEmissiveFactor');
     }
 
-    this._uniformLocations.diffuseEnvSampler = gl.getUniformLocation(this._program, 'uDiffuseEnvSampler');
-    this._uniformLocations.specularEnvSampler = gl.getUniformLocation(this._program, 'uSpecularEnvSampler');
-    this._uniformLocations.brdfLUT = gl.getUniformLocation(this._program, 'uBrdfLUT');
+    this._uniformLocations.uDiffuseEnvSampler = gl.getUniformLocation(this._program, 'uDiffuseEnvSampler');
+    this._uniformLocations.uSpecularEnvSampler = gl.getUniformLocation(this._program, 'uSpecularEnvSampler');
+    this._uniformLocations.uBrdfLUT = gl.getUniformLocation(this._program, 'uBrdfLUT');
 
     // set static uniform values in cubemap
-    // gl.useProgram(this._program);
-    // gl.uniform1i(us.brdfLUT, BRDF_LUT.textureIndex);
-    // gl.uniform1i(us.specularEnvSampler, CUBE_MAP.textureIndex);
-    // gl.uniform1i(us.diffuseEnvSampler, CUBE_MAP.textureIBLDiffuseIndex);
-    // gl.useProgram(null);
+    gl.useProgram(this._program);
+    gl.uniform1i(this._uniformLocations.uBrdfLUT, 13);
+    gl.uniform1i(this._uniformLocations.uSpecularEnvSampler, 14);
+    gl.uniform1i(this._uniformLocations.uDiffuseEnvSampler, 15);
+    gl.useProgram(null);
 
     return this;
   }
@@ -227,5 +227,21 @@ export default class Shader {
       this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
     }
     gl.uniform1i(location, value);
+  }
+
+  set1f(type, value) {
+    let location = this._uniformLocations[type];
+    if (!location) {
+      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    }
+    gl.uniform1f(location, value);
+  }
+
+  set4fv(type, value) {
+    let location = this._uniformLocations[type];
+    if (!location) {
+      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    }
+    gl.uniform4fv(location, value);
   }
 }

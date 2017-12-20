@@ -223,7 +223,7 @@ export default class DeferredRenderer extends Renderer {
       MVP: MVP,
       MV: MV,
       M: item.worldMatrix,
-      V: this.view,
+      V: this.view
     };
     item.primitive.draw(this);
   }

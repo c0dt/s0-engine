@@ -1,5 +1,6 @@
 export default class ResourceItem {  
-  constructor({ url, type }) {
+  constructor({ name, url, type }) {
+    this._name = name;
     this._url = url;
     if (type) {
       this._type = type;
@@ -9,6 +10,10 @@ export default class ResourceItem {
         this._type = matches[1].toLowerCase();
       }
     }
+  }
+
+  get name() {
+    return this._name;
   }
 
   get type() {

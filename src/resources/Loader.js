@@ -14,4 +14,8 @@ export default class Loader {
   get url() {
     return this._item.url;
   }
+
+  _decode(rawData) {
+    return Promise.resolve(); 
+  }
 }

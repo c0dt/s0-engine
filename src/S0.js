@@ -6,7 +6,13 @@ import ForwardRenderer from './renderers/ForwardRenderer';
 import DeferredRenderer from './renderers/DeferredRenderer';
 import ResoucePipeline from './resources/ResourcePipeline';
 
+import Cubemap from './core/Cubemap';
+
 import Camera from './Camera';
+import CubemapLoader from './resources/loaders/CubemapLoader';
+import TextureLoader from './resources/loaders/TextureLoader';
+
+import IBLManager from './managers/IBLManager';
 
 class S0 {
   constructor() {
@@ -50,7 +56,25 @@ class S0 {
       pitch: 0
     });
     // this.axis = new Axis;
-
+    let loadTasks = [];
+    let task = ResoucePipeline.loadAsync('IBL/default/env/cubemap.json', { loaderClass: CubemapLoader })
+      .then((cubemap) => {
+        IBLManager.specularEnvSampler = cubemap.texture;
+        return Promise.resolve();
+      });
+    loadTasks.push(task);
+    task = ResoucePipeline.loadAsync('IBL/default/diffuse/cubemap.json', { loaderClass: CubemapLoader })
+      .then((cubemap) => {
+        IBLManager.diffuseEnvSampler = cubemap.texture;
+        return Promise.resolve();
+      });
+    loadTasks.push(task);
+    task = ResoucePipeline.loadAsync('IBL/brdfLUT.png', { name: 'BRDF_LUT', loaderClass: TextureLoader })
+      .then((texture) => {
+        IBLManager.brdfLUT = texture.texture;
+        return Promise.resolve();
+      });
+    loadTasks.push(task);
     this.primitives = {};
     this._scenes = [];
     let urls = [
@@ -69,16 +93,21 @@ class S0 {
       // 'ElvenRuins'
       // 'Miniscene'
     ];
-    urls.forEach((url) => {
-      ResoucePipeline.loadAsync(`${url}/model.gltf`, {}).then(
-        (asset) => {
-          this._scenes.push(asset);
-          this.mouseController.target = asset.root;
-          console.log(asset);
-          return asset;
-        }
-      );
-    });
+
+    Promise.all(loadTasks).then(
+      () => {
+        urls.forEach((url) => {
+          ResoucePipeline.loadAsync(`${url}/model.gltf`).then(
+            (asset) => {
+              this._scenes.push(asset);
+              this.mouseController.target = asset.root;
+              console.log(asset);
+              return asset;
+            }
+          );
+        });
+      }
+    );
 
     window.requestAnimationFrame(this.animate.bind(this));
   }

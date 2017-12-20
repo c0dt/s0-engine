@@ -32,19 +32,19 @@ class ResourcePipeline {
     });
   }
 
-  loadAsync(url) {
-    let item = new ResourceItem({ url: url });
-    let loader = this.getLoader(item);
+  loadAsync(url, { name: name, loaderClass: loaderClass } = {}) {
+    let item = new ResourceItem({ name: name, url: url });
+    let loader = loaderClass ? new loaderClass(item) : this.getLoader(item);
     return loader.loadAsync();
   }
 
-  loadAllAsync(urls) {
+  loadAllAsync(urls, { lname: name, oaderClass: loaderClass } = {}) {
     let items = [];
     let promises = [];
     urls.forEach((url) => {
-      let item = new ResourceItem({ url: url });
+      let item = new ResourceItem({ name: name, url: url });
       items.push(item);
-      let loader = this.getLoader(item);
+      let loader = loaderClass ? new loaderClass(item) : this.getLoader(item);
       promises.push(loader.loadAsync());
     });
 

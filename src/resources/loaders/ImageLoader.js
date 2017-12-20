@@ -9,7 +9,9 @@ export default class ImageLoader extends Loader {
       img.src = this.url;
       img.onload = (evt) => {
         this.item.data = img;
-        resolve(evt);
+        this._decode(img).then((data) => {
+          resolve(data);
+        });
       };
       img.onerror = (error) => {
         reject(error);
