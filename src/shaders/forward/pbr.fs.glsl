@@ -115,20 +115,24 @@ vec3 getNormal()
 //     vec3 n = tbn[2].xyz;
 // #endif
 //     return n;
-
-    vec3 tangentNormal = texture(uNormalTexture, vTexcoord).xyz * 2.0 - 1.0;
-    
     vec3 Q1  = dFdx(vPosition);
     vec3 Q2  = dFdy(vPosition);
     vec2 st1 = dFdx(vTexcoord);
     vec2 st2 = dFdy(vTexcoord);
-    
+
     vec3 N   = normalize(vNormal);
     vec3 T  = normalize(Q1*st2.t - Q2*st1.t);
     vec3 B  = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
-    
-    return normalize(TBN * tangentNormal);
+
+#ifdef HAS_NORMALS
+    vec3 tangentNormal = texture(uNormalTexture, vTexcoord).xyz * 2.0 - 1.0;
+    vec3 n = normalize(TBN * tangentNormal);
+#else
+    vec3 n = TBN[2].xyz;
+#endif
+
+    return n;
 }
 
 vec3 getIBLContribution(PBRInfo pbrInputs, vec3 n, vec3 reflection)
