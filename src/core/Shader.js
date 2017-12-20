@@ -1,11 +1,12 @@
+import S0 from '../S0';
 // import vsPBRMaster from '../shaders/forward/unlit.vs.glsl';
 // import fsPBRMaster from '../shaders/forward/unlit.fs.glsl';
 
-import vsPBRMaster from '../shaders/forward/pbr.vs.glsl';
-import fsPBRMaster from '../shaders/forward/pbr.fs.glsl';
+import vsForwardPBRMaster from '../shaders/forward/pbr.vs.glsl';
+import fsForwardPBRMaster from '../shaders/forward/pbr.fs.glsl';
 
-// import vsPBRMaster from '../shaders/deferred/pbr.vs.glsl';
-// import fsPBRMaster from '../shaders/deferred/pbr.fs.glsl';
+import vsDeferredPBRMaster from '../shaders/deferred/pbr.vs.glsl';
+import fsDeferredPBRMaster from '../shaders/deferred/pbr.fs.glsl';
 
 export const ShaderManager = {
   _shaderCounter: 0,
@@ -28,7 +29,12 @@ export const ShaderManager = {
 
   createShader(type, flags) {
     if (type === 'PBR') {
-      let shader = new Shader(vsPBRMaster, fsPBRMaster);
+      let shader;
+      if (S0.renderType === 'deferred') {
+        shader = new Shader(vsDeferredPBRMaster, fsDeferredPBRMaster);
+      } else if (S0.renderType === 'forward') {
+        shader = new Shader(vsForwardPBRMaster, fsForwardPBRMaster);
+      }
       return shader.compile(flags);
     }
   },

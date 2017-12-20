@@ -1,9 +1,18 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-
+// #define POSITION_LOCATION 0
+// #define NORMAL_LOCATION 1
+// #define TEXCOORD_0_LOCATION 2
+// #define JOINTS_0_LOCATION 3
+// #define WEIGHTS_0_LOCATION 4
+// #define JOINTS_1_LOCATION 5
+// #define WEIGHTS_1_LOCATION 6
+// #define TANGENT_LOCATION 7
 const AttributePositionMapping = {
   POSITION: 0,
   NORMAL: 1,
-  TEXCOORD_0: 2
+  TEXCOORD_0: 2,
+  JOINTS_0: 3,
+  WEIGHTS_0: 4
 };
 
 export default class Primitive {

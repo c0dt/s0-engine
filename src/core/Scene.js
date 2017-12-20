@@ -7,7 +7,9 @@ export default class Scene {
     meshes, 
     rootNode, 
     textures,
-    materials }) {
+    materials,
+    skins 
+    }) {
     this._buffers = buffers;
     this._bufferViews = bufferViews;
     this._accessors = accessors;
@@ -15,6 +17,7 @@ export default class Scene {
     this._rootNode = rootNode;
     this._textures = textures;
     this._materials = materials;
+    this._skins = skins;
   }
 
   get root() {

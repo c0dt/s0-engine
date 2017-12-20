@@ -39,8 +39,16 @@ class S0 {
       console.warn("This example requires EXT_color_buffer_float which is unavailable on this system.");
     }
     window.gl = gl;
-    this.renderer = new ForwardRenderer(canvas.width, canvas.height);
-    // this.renderer = new DeferredRenderer(canvas.width, canvas.height);
+
+    this.renderType = 'deferred';
+    // this.renderType = 'forward';
+
+    if (this.renderType === 'deferred') {
+      this.renderer = new DeferredRenderer(canvas.width, canvas.height);
+    } else if (this.renderType === 'forward') {
+      this.renderer = new ForwardRenderer(canvas.width, canvas.height);
+    }
+    
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     //

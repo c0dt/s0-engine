@@ -11,6 +11,7 @@ import Scene from '../../core/Scene';
 import Sampler from '../../core/Sampler';
 import Texture from '../../core/Texture';
 import Material from '../../core/Material';
+import Skin from '../../core/Skin';
 
 export default class GLTFLoader extends JSONLoader {
 
@@ -123,18 +124,44 @@ export default class GLTFLoader extends JSONLoader {
   _processNodes(glTF, context) {
     let identity = mat4.create();
     let rootNode = undefined;
+    context.nodes = [];
     if (glTF.nodes && glTF.nodes.length > 0) {
       let node = glTF.nodes[0];
-      rootNode = new Node(node, identity);
+      context.nodes[0] = rootNode = new Node(node, identity);
       this._setupChildren(rootNode, node, glTF.nodes, context);
     }
     context.rootNode = rootNode;
     return context;
   }
 
+  _processSkins(glTF, context) {
+    let skins = [];
+    console.log(glTF.skins);
+    glTF.skins.forEach((skin) => {
+      
+      let joints = [];
+
+      skin.joints.forEach((joint, index) => {
+        joints.push({
+          id: index,
+          node: context.nodes[joint]
+        });
+      });
+
+      skins.push(new Skin({
+        inverseBindMatrices: context.accessors[skin.inverseBindMatrices],
+        joints: joints,
+        skeleton: context.nodes[skin.skeleton]
+      }));
+    });
+    context.skins = skins;
+    return context;
+  }
+
   _decode(rawData) {
     this._jsonObject = JSON.parse(rawData);
     let glTF = this._jsonObject;
+    console.log(glTF);
     let context = {
       buffers: undefined,
       bufferViews: undefined,
@@ -156,6 +183,7 @@ export default class GLTFLoader extends JSONLoader {
       this._processAccessors(glTF, context);
       this._processMesh(glTF, context);
       this._processNodes(glTF, context);
+      this._processSkins(glTF, context);
       return new Scene(context);
     });
   }
@@ -168,6 +196,7 @@ export default class GLTFLoader extends JSONLoader {
       node.children.forEach((child) => {
         let childNode = nodes[child];
         let childNodeIntance = new Node(childNode, obj.worldMatrix);
+        context.nodes[child] = childNodeIntance;
         obj.addChild(childNodeIntance);
         this._setupChildren(childNodeIntance, childNode, nodes, context);
       });

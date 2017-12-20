@@ -139,6 +139,10 @@ export default class DeferredRenderer extends Renderer {
   }
 
   render(scenes, camera) {
+    this.projection = camera.projection;
+    this.view = camera.view;
+    this.cameraPosition = camera.position;
+    
     this.geometryPass(scenes, camera);
     this.lightingPass();
     this.composite();
@@ -155,8 +159,7 @@ export default class DeferredRenderer extends Renderer {
         let root = scene.root;
         this._visitNode(root, mat4.create());
       }
-      this.projection = camera.projection;
-      this.view = camera.view;
+
       length = this._items.length;
       for (let i = 0; i < length; i++) {
         this._render(this._items[i]);
@@ -214,6 +217,34 @@ export default class DeferredRenderer extends Renderer {
       });
     }
   }
+  
+  activeAndBindTexture(textureInfo) {
+    gl.activeTexture(gl.TEXTURE0 + textureInfo.index);
+    let texture = textureInfo.texture;
+    if (!texture.texture) {
+      texture.texture = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+      gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA,
+        gl.RGBA,
+        gl.UNSIGNED_BYTE,
+        texture.source
+      );
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    } else {
+      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
+    }
+    let sampler;
+    if (texture.sampler) {
+      sampler = texture.sampler.sampler;
+    } else {
+      sampler = this.defaultSampler;
+    }
+    gl.bindSampler(textureInfo.index, sampler);
+  }
 
   //@TODO 
   _render(item) {
@@ -223,58 +254,15 @@ export default class DeferredRenderer extends Renderer {
       MVP: MVP,
       MV: MV,
       M: item.worldMatrix,
-      V: this.view
+      activeAndBindTexture: this.activeAndBindTexture,
+      cameraPosition: this.cameraPosition
     };
     item.primitive.draw(this);
   }
 
   //@TODO 
   useMaterial(material) {
-    material.shader.use();
-    material.shader.setMat4("uM", this.context.M);
-    material.shader.setMat4("uMVP", this.context.MVP);
-
-    material.shader.setInt("uBaseColorTexture", 0);
-    material.shader.setInt("uNormalTexture", 1);
-    material.shader.setInt("uMetallicRoughnessTexture", 2);
-
-    let texture = material.baseColorTextureInfo.texture;
-    let index = material.baseColorTextureInfo.index;
-    let sampler;
-    if (texture.sampler) {
-      sampler = texture.sampler.sampler;
-    } else {
-      sampler = this.defaultSampler;
-    }
-    gl.activeTexture(gl.TEXTURE0 + index);
-    gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-    gl.bindSampler(index, sampler);
-
-    if (material.normalTextureInfo) {
-      texture = material.normalTextureInfo.texture;
-      index = material.normalTextureInfo.index;
-      if (texture.sampler) {
-        sampler = texture.sampler.sampler;
-      } else {
-        sampler = this.defaultSampler;
-      }
-      gl.activeTexture(gl.TEXTURE0 + index);
-      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-      gl.bindSampler(index, sampler);
-    }
-
-    if (material.metallicRoughnessTextureInfo) {
-      texture = material.metallicRoughnessTextureInfo.texture;
-      index = material.metallicRoughnessTextureInfo.index;
-      if (texture.sampler) {
-        sampler = texture.sampler.sampler;
-      } else {
-        sampler = this.defaultSampler;
-      }
-      gl.activeTexture(gl.TEXTURE0 + index);
-      gl.bindTexture(gl.TEXTURE_2D, texture.texture);
-      gl.bindSampler(index, sampler);
-    }
+    material.use(this.context);
   }
 
   //@TODO 
