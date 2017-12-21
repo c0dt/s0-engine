@@ -15,5 +15,5 @@ uniform sampler2D depthTexture;
 
 void main()
 {
-    color = vec4(vec3(texture(gMetallicRoughness, vTexCoords).r), 1.0);
+    color = vec4(vec3(texture(gNormal, vTexCoords)), 1.0);
 }

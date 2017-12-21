@@ -4,20 +4,35 @@ import { /* vec3, vec4, quat,*/ mat4 } from 'gl-matrix';
 import Quad from '../primitives/Quad';
 import Shader from '../core/Shader';
 
-import vsPBRMaster from '../shaders/deferred/pbr.vs.glsl';
-import fsPBRMaster from '../shaders/deferred/pbr.fs.glsl';
+import vsLighting from '../shaders/deferred/pbrlighting.vs.glsl';
+import fsLighting from '../shaders/deferred/pbrlighting.fs.glsl';
 
 import vsComposite from '../shaders/deferred/composite.vs.glsl';
 import fsComposite from '../shaders/deferred/composite.fs.glsl';
+
+import IBLManager from '../managers/IBLManager';
+
+import vsSkyBox from '../shaders/forward/cube-map.vs.glsl';
+import fsSkyBox from '../shaders/forward/cube-map.fs.glsl';
+
+import Cube from '../primitives/Cube';
 
 export default class DeferredRenderer extends Renderer {
   constructor(width, height) {
     super(width, height);
     this._items = [];
-
     this._initializeGBuffer();
+    this._shaderLightingPass = new Shader(vsLighting, fsLighting);
+    this._shaderLightingPass.compile();
+
+    this._shaderCompositePass = new Shader(vsComposite, fsComposite);
+    this._shaderCompositePass.compile();
 
     this._quad = new Quad();
+
+    this._cube = new Cube();
+    this._shaderSkybox = new Shader(vsSkyBox, fsSkyBox);
+    this._shaderSkybox.compile();
   }
 
   _initializeGBuffer() {
@@ -133,19 +148,37 @@ export default class DeferredRenderer extends Renderer {
     gl.bindTexture(gl.TEXTURE_2D, null);
     gl.bindRenderbuffer(gl.RENDERBUFFER, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-    this._shaderCompositePass = new Shader(vsComposite, fsComposite);
-    this._shaderCompositePass.compile();
   }
 
   render(scenes, camera) {
     this.projection = camera.projection;
     this.view = camera.view;
     this.cameraPosition = camera.position;
-    
-    this.geometryPass(scenes, camera);
-    this.lightingPass();
-    this.composite();
+
+    if (scenes.length && IBLManager.isReady) {
+      this.geometryPass(scenes, camera);
+      this.lightingPass();
+      
+    //   gl.enable(gl.DEPTH_TEST);
+    //   gl.depthFunc(gl.LEQUAL);
+      
+    //   let MVP = mat4.create();
+    //   mat4.copy(MVP, camera.view);
+    //   MVP[12] = 0.0;
+    //   MVP[13] = 0.0;
+    //   MVP[14] = 0.0;
+    //   MVP[15] = 1.0;
+    //   mat4.mul(MVP, camera.projection, MVP);
+    //   this._shaderSkybox.use();
+    //   this._shaderSkybox.setMat4('uMVP', MVP);
+    //   this._shaderSkybox.setInt('u_environment', 0);
+    //   // IBLManager.activeAndBindTextures();
+    //   gl.activeTexture(gl.TEXTURE0);
+    //   gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
+    //   this._cube.draw();
+    // }
+    }
+    // this.composite();
   }
 
   geometryPass(scenes, camera) {
@@ -171,7 +204,26 @@ export default class DeferredRenderer extends Renderer {
   }
 
   lightingPass() {
-    
+    this._shaderLightingPass.use();
+
+    this._shaderLightingPass.setInt("gPosition", 0);
+    this._shaderLightingPass.setInt("gNormal", 1);
+    this._shaderLightingPass.setInt("gAlbedoSpec", 2);
+    this._shaderLightingPass.setInt("gMetallicRoughness", 3);
+    this._shaderLightingPass.setInt("depthTexture", 4);
+    IBLManager.activeAndBindTextures();
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, this._gPosition);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, this._gNormal);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, this._gAlbedoSpec);
+    gl.activeTexture(gl.TEXTURE3);
+    gl.bindTexture(gl.TEXTURE_2D, this._gMetallicRoughness);
+    gl.activeTexture(gl.TEXTURE4);
+    gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+
+    this._quad.draw();
   }
 
   composite() {
