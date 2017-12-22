@@ -12,6 +12,7 @@ import Sampler from '../../core/Sampler';
 import Texture from '../../core/Texture';
 import Material from '../../core/Material';
 import Skin from '../../core/Skin';
+import Animation, { AnimationSampler, AnimationChannel } from '../../core/Animation';
 
 export default class GLTFLoader extends JSONLoader {
 
@@ -136,25 +137,50 @@ export default class GLTFLoader extends JSONLoader {
 
   _processSkins(glTF, context) {
     let skins = [];
-    console.log(glTF.skins);
-    glTF.skins.forEach((skin) => {
+    if (glTF.skins && glTF.skins.length > 0) {
+      glTF.skins.forEach((skin) => {
       
-      let joints = [];
-
-      skin.joints.forEach((joint, index) => {
-        joints.push({
-          id: index,
-          node: context.nodes[joint]
+        let joints = [];
+  
+        skin.joints.forEach((joint, index) => {
+          joints.push({
+            id: index,
+            node: context.nodes[joint]
+          });
         });
+  
+        skins.push(new Skin({
+          inverseBindMatrices: context.accessors[skin.inverseBindMatrices],
+          joints: joints,
+          skeleton: context.nodes[skin.skeleton]
+        }));
       });
 
-      skins.push(new Skin({
-        inverseBindMatrices: context.accessors[skin.inverseBindMatrices],
-        joints: joints,
-        skeleton: context.nodes[skin.skeleton]
-      }));
-    });
+      console.log(skins);
+    }
     context.skins = skins;
+    return context;
+  }
+
+  _processAnimations(glTF, context) {
+    let animations = [];
+    if (glTF.animations && glTF.animations.length > 0) {
+      glTF.animations.forEach((animation) => {
+        let samplers = animation.samplers.map((sampler) => {
+          let input = context.accessors[sampler.input];
+          let output = context.accessors[sampler.output];
+          return new AnimationSampler(input, output, sampler.interpolation);
+        });
+        let channels = animation.channels.map((channel) => {
+          return new AnimationChannel(samplers[channel.sampler], {
+            node: context.nodes[channel.target.node],
+            path: channel.target.path
+          });
+        });
+        console.log(new Animation(animation.name, samplers, channels));
+      });
+    }
+    context.animations = animations;
     return context;
   }
 
@@ -184,6 +210,7 @@ export default class GLTFLoader extends JSONLoader {
       this._processMesh(glTF, context);
       this._processNodes(glTF, context);
       this._processSkins(glTF, context);
+      this._processAnimations(glTF, context);
       return new Scene(context);
     });
   }

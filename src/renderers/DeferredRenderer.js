@@ -33,6 +33,9 @@ export default class DeferredRenderer extends Renderer {
     this._cube = new Cube();
     this._shaderSkybox = new Shader(vsSkyBox, fsSkyBox);
     this._shaderSkybox.compile();
+
+    this._tmpMat4 = mat4.create();
+    this._inverseTransformMat4 = mat4.create();
   }
 
   _initializeGBuffer() {
@@ -215,6 +218,7 @@ export default class DeferredRenderer extends Renderer {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     scenes.forEach((scene) => {
+      this.currentScene = scene;
       let length = this._items.length;
       if (length === 0) {
         let root = scene.root;
@@ -281,6 +285,26 @@ export default class DeferredRenderer extends Renderer {
   _visitNode(node, parentMatrix) {
 
     let worldMatrix = mat4.multiply(mat4.create(), parentMatrix, node.localMatrix);
+
+    if (node.hasSkin()) {
+      let skin = this.currentScene.skins[node.skin];
+      let uniformBlockID = skin.uniformBlockID;
+      let joints = skin.joints;
+      let jointNode;
+
+      mat4.invert(this._inverseTransformMat4, worldMatrix);
+      // @tmp: assume joint nodes are always in the front of the scene node list
+      // so that their matrices are ready to use
+      for (let i = 0, len = skin.joints.length; i < len; i++) {
+        jointNode = joints[i].node;
+        mat4.mul(this._tmpMat4, jointNode.worldMatrix, skin.inverseBindMatrices[i]);
+        mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
+        skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
+      }
+
+      gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
+      gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
+    }
     
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {

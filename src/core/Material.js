@@ -55,6 +55,7 @@ export default class Material {
         };
       }
     }
+    // flag |= ShaderManager.bitMasks.HAS_SKIN;
     this._shader = ShaderManager.getShader("PBR", flag);
   }
 

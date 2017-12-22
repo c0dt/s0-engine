@@ -171,7 +171,7 @@ export default class Shader {
 
     // uniform block id
     if (this.hasSkin()) {
-      this._program.uniformBlockIndices.JointMatrix = gl.getUniformBlockIndex(this._program, "uJointMatrix");
+      this._uniformBlockIndices.uJointMatrix = gl.getUniformBlockIndex(this._program, "uJointMatrix");
     }
 
     this._uniformLocations.MVP = gl.getUniformLocation(this._program, 'uMVP');

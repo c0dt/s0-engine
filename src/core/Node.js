@@ -1,7 +1,7 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 
 export default class Node {
-  constructor({ name, translation, rotation, scale }, parentWorldMatrix) {
+  constructor({ name, translation, rotation, scale, skin }, parentWorldMatrix) {
     this._components = [];
     this._name = name;
     this._translation = vec3.fromValues(translation[0], translation[1], translation[2]);
@@ -13,6 +13,15 @@ export default class Node {
     this._parentWorldMatrix = parentWorldMatrix;
     this._worldMatrix = mat4.multiply(mat4.create(), this._parentWorldMatrix, this._localMatrix);
     this._children = [];
+    this._skin = skin;
+  }
+
+  hasSkin() {
+    return this._skin !== undefined;
+  }
+
+  get skin() {
+    return this._skin;
   }
 
   addChild(node) {

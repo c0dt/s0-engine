@@ -11,7 +11,7 @@ uniform sampler2D compositeTexture;
 // uniform sampler2D gNormal;
 // uniform sampler2D gAlbedoSpec;
 // uniform sampler2D gMetallicRoughness;
-uniform sampler2D depthTexture;
+// uniform sampler2D depthTexture;
 
 void main()
 {

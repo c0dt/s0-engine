@@ -6,11 +6,22 @@ layout (location = 1) out vec4 gNormal;
 layout (location = 2) out vec4 gAlbedoSpec;
 layout (location = 3) out vec4 gMetallicRoughness;
 
+// base color
+uniform vec4 uBaseColorFactor;
+#ifdef HAS_BASECOLORMAP
 uniform sampler2D uBaseColorTexture;
+#endif
+// normal map
+#ifdef HAS_NORMALMAP
 uniform sampler2D uNormalTexture;
+uniform float uNormalTextureScale;
+#endif
+// metal roughness
+#ifdef HAS_METALROUGHNESSMAP
 uniform sampler2D uMetallicRoughnessTexture;
-
-uniform vec3 uCameraPosition;
+#endif
+uniform float uMetallicFactor;
+uniform float uRoughnessFactor;
 
 in vec2 vTexcoord0;
 in vec3 vWorldPos;
@@ -30,7 +41,7 @@ vec3 getNormal()
     vec3 B  = -normalize(cross(N, T));
     mat3 TBN = mat3(T, B, N);
 
-#ifdef HAS_NORMALS
+#ifdef HAS_NORMALSMAP
     vec3 tangentNormal = texture(uNormalTexture, vTexcoord0).xyz * 2.0 - 1.0;
     vec3 n = normalize(TBN * tangentNormal);
 #else
@@ -44,6 +55,15 @@ void main()
 {
     gPosition = vec4(vWorldPos, 1.0);
     gNormal = vec4(getNormal(), 1.0);
-    gAlbedoSpec = vec4(texture(uBaseColorTexture,vTexcoord0).rgb, 1.0);
+#ifdef HAS_BASECOLORMAP
+    gAlbedoSpec = vec4(texture(uBaseColorTexture,vTexcoord0)) * uBaseColorFactor;
+#else
+    gAlbedoSpec = uBaseColorFactor;
+#endif
+
+#ifdef HAS_METALROUGHNESSMAP
     gMetallicRoughness = vec4(texture(uMetallicRoughnessTexture, vTexcoord0).rgb, 1.0);
+#else
+    gMetallicRoughness = vec4(1.0, uRoughnessFactor, uMetallicFactor, 1.0);
+#endif
 }

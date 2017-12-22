@@ -23,4 +23,8 @@ export default class Scene {
   get root() {
     return this._rootNode;
   }
+
+  get skins() {
+    return this._skins;
+  }
 }
