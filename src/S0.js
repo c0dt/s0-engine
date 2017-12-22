@@ -29,7 +29,7 @@ class S0 {
     canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
 
-    let gl = canvas.getContext('webgl2', { antialias: true });
+    let gl = canvas.getContext('webgl2', { antialias: false });
     let isWebGL2 = !!gl;
     if (!isWebGL2) {
       console.warn('WebGL 2 is not available.  See https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation How to get a WebGL 2 implementation');

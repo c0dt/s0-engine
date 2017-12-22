@@ -146,7 +146,31 @@ export default class DeferredRenderer extends Renderer {
     }
 
     gl.bindTexture(gl.TEXTURE_2D, null);
-    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    // gl.bindRenderbuffer(gl.RENDERBUFFER, null);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    this._compositeBuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._compositeBuffer);
+    this._compositeTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texImage2D(
+        gl.TEXTURE_2D,
+        0,
+        gl.RGBA16F,
+        this._viewWith,
+        this._viewHeight,
+        0,
+        gl.RGBA,
+        gl.FLOAT,
+        null
+    );
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._compositeTexture, 0);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
+    gl.bindTexture(gl.TEXTURE_2D, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
   }
 
@@ -157,28 +181,32 @@ export default class DeferredRenderer extends Renderer {
 
     if (scenes.length && IBLManager.isReady) {
       this.geometryPass(scenes, camera);
+
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this._compositeBuffer);  
+      gl.disable(gl.DEPTH_TEST);
+      //gl.clear(gl.COLOR_BUFFER_BIT);
       this.lightingPass();
       
-    //   gl.enable(gl.DEPTH_TEST);
-    //   gl.depthFunc(gl.LEQUAL);
+      gl.enable(gl.DEPTH_TEST);
+      gl.depthFunc(gl.LEQUAL);
       
-    //   let MVP = mat4.create();
-    //   mat4.copy(MVP, camera.view);
-    //   MVP[12] = 0.0;
-    //   MVP[13] = 0.0;
-    //   MVP[14] = 0.0;
-    //   MVP[15] = 1.0;
-    //   mat4.mul(MVP, camera.projection, MVP);
-    //   this._shaderSkybox.use();
-    //   this._shaderSkybox.setMat4('uMVP', MVP);
-    //   this._shaderSkybox.setInt('u_environment', 0);
-    //   // IBLManager.activeAndBindTextures();
-    //   gl.activeTexture(gl.TEXTURE0);
-    //   gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
-    //   this._cube.draw();
-    // }
+      let MVP = mat4.create();
+      mat4.copy(MVP, camera.view);
+      MVP[12] = 0.0;
+      MVP[13] = 0.0;
+      MVP[14] = 0.0;
+      MVP[15] = 1.0;
+      mat4.mul(MVP, camera.projection, MVP);
+      this._shaderSkybox.use();
+      this._shaderSkybox.setMat4('uMVP', MVP);
+      this._shaderSkybox.setInt('u_environment', 0);
+      // IBLManager.activeAndBindTextures();
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
+      this._cube.draw();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
-    // this.composite();
+    this.composite();
   }
 
   geometryPass(scenes, camera) {
@@ -229,21 +257,21 @@ export default class DeferredRenderer extends Renderer {
   composite() {
     this._shaderCompositePass.use();
 
-    this._shaderCompositePass.setInt("gPosition", 0);
-    this._shaderCompositePass.setInt("gNormal", 1);
-    this._shaderCompositePass.setInt("gAlbedoSpec", 2);
-    this._shaderCompositePass.setInt("gMetallicRoughness", 3);
-    this._shaderCompositePass.setInt("depthTexture", 4);
+    this._shaderCompositePass.setInt("compositeTexture", 0);
+    this._shaderCompositePass.setInt("depthTexture", 1);
+    // this._shaderCompositePass.setInt("gAlbedoSpec", 2);
+    // this._shaderCompositePass.setInt("gMetallicRoughness", 3);
+    // this._shaderCompositePass.setInt("depthTexture", 4);
 
     gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, this._gPosition);
+    gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
     gl.activeTexture(gl.TEXTURE1);
-    gl.bindTexture(gl.TEXTURE_2D, this._gNormal);
-    gl.activeTexture(gl.TEXTURE2);
-    gl.bindTexture(gl.TEXTURE_2D, this._gAlbedoSpec);
-    gl.activeTexture(gl.TEXTURE3);
-    gl.bindTexture(gl.TEXTURE_2D, this._gMetallicRoughness);
-    gl.activeTexture(gl.TEXTURE4);
+    // gl.bindTexture(gl.TEXTURE_2D, this._gNormal);
+    // gl.activeTexture(gl.TEXTURE2);
+    // gl.bindTexture(gl.TEXTURE_2D, this._gAlbedoSpec);
+    // gl.activeTexture(gl.TEXTURE3);
+    // gl.bindTexture(gl.TEXTURE_2D, this._gMetallicRoughness);
+    // gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
 
     this._quad.draw();
