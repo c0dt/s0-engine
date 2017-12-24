@@ -25,24 +25,3 @@ export const Type2NumOfComponent = {
   'MAT3': 9,
   'MAT4': 16
 };
-
-export const ArrayBuffer2TypedArray = function(buffer, byteOffset, countOfComponentType, componentType) {
-  switch (componentType) {
-          // @todo: finish
-    case 5122: return new Int16Array(buffer, byteOffset, countOfComponentType);
-    case 5123: return new Uint16Array(buffer, byteOffset, countOfComponentType);
-    case 5124: return new Int32Array(buffer, byteOffset, countOfComponentType);
-    case 5125: return new Uint32Array(buffer, byteOffset, countOfComponentType);
-    case 5126: return new Float32Array(buffer, byteOffset, countOfComponentType);
-    default: return null; 
-  }
-};
-  
-export const GetAccessorData = function(accessor) {
-  return ArrayBuffer2TypedArray(
-          accessor.bufferView.buffer, 
-          accessor.byteOffset, 
-          accessor.count * Type2NumOfComponent[accessor.type],
-          accessor.componentType
-          );
-};

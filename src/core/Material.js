@@ -55,7 +55,7 @@ export default class Material {
         };
       }
     }
-    // flag |= ShaderManager.bitMasks.HAS_SKIN;
+    flag |= ShaderManager.bitMasks.HAS_SKIN;
     this._shader = ShaderManager.getShader("PBR", flag);
   }
 
@@ -108,6 +108,10 @@ export default class Material {
       this.shader.setInt('uEmissiveTexture', this._emissiveTexture.index);
       // this.shader.setInt('uEmissiveFactor', this._emissiveTexture.strength);
       context.activeAndBindTexture(this._emissiveTexture);
+    }
+
+    if (this.shader.hasSkin()) {
+      this.shader.setInt('uJointMatrix', 0);
     }
 
     IBLManager.activeAndBindTextures();

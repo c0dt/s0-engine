@@ -16,6 +16,7 @@ import vsSkyBox from '../shaders/forward/cube-map.vs.glsl';
 import fsSkyBox from '../shaders/forward/cube-map.fs.glsl';
 
 import Cube from '../primitives/Cube';
+import LUTManager from '../managers/LUTManager';
 
 export default class DeferredRenderer extends Renderer {
   constructor(width, height) {
@@ -33,6 +34,9 @@ export default class DeferredRenderer extends Renderer {
     this._cube = new Cube();
     this._shaderSkybox = new Shader(vsSkyBox, fsSkyBox);
     this._shaderSkybox.compile();
+
+
+    this._skinnedNodes = [];
 
     this._tmpMat4 = mat4.create();
     this._inverseTransformMat4 = mat4.create();
@@ -156,20 +160,20 @@ export default class DeferredRenderer extends Renderer {
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._compositeBuffer);
     this._compositeTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA16F,
-        this._viewWith,
-        this._viewHeight,
-        0,
-        gl.RGBA,
-        gl.FLOAT,
-        null
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      this._viewWith,
+      this._viewHeight,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      null
     );
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._compositeTexture, 0);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
@@ -218,12 +222,28 @@ export default class DeferredRenderer extends Renderer {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     scenes.forEach((scene) => {
-      this.currentScene = scene;
       let length = this._items.length;
       if (length === 0) {
         let root = scene.root;
         this._visitNode(root, mat4.create());
       }
+
+      this._skinnedNodes.forEach((node) => {
+        let skin = scene.skins[node.skin];
+      // let uniformBlockID = skin.uniformBlockID;
+        let joints = skin.joints;
+
+        mat4.invert(this._inverseTransformMat4, node.worldMatrix);
+        for (let i = 0, len = skin.joints.length; i < len; i++) {
+          let jointNode = joints[i].node;
+          mat4.mul(this._tmpMat4, jointNode.worldMatrix, skin.inverseBindMatrices[i]);
+          mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
+          skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
+        }
+
+        gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
+      });
 
       length = this._items.length;
       for (let i = 0; i < length; i++) {
@@ -263,20 +283,16 @@ export default class DeferredRenderer extends Renderer {
 
     this._shaderCompositePass.setInt("compositeTexture", 0);
     this._shaderCompositePass.setInt("depthTexture", 1);
-    // this._shaderCompositePass.setInt("gAlbedoSpec", 2);
+    this._shaderCompositePass.setInt("lutTexture", 2);
     // this._shaderCompositePass.setInt("gMetallicRoughness", 3);
     // this._shaderCompositePass.setInt("depthTexture", 4);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
     gl.activeTexture(gl.TEXTURE1);
-    // gl.bindTexture(gl.TEXTURE_2D, this._gNormal);
-    // gl.activeTexture(gl.TEXTURE2);
-    // gl.bindTexture(gl.TEXTURE_2D, this._gAlbedoSpec);
-    // gl.activeTexture(gl.TEXTURE3);
-    // gl.bindTexture(gl.TEXTURE_2D, this._gMetallicRoughness);
-    // gl.activeTexture(gl.TEXTURE4);
     gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+    gl.activeTexture(gl.TEXTURE2);
+    gl.bindTexture(gl.TEXTURE_2D, LUTManager.lutTexture);
 
     this._quad.draw();
   }
@@ -284,40 +300,24 @@ export default class DeferredRenderer extends Renderer {
   //
   _visitNode(node, parentMatrix) {
 
-    let worldMatrix = mat4.multiply(mat4.create(), parentMatrix, node.localMatrix);
+    mat4.multiply(node.worldMatrix, parentMatrix, node.localMatrix);
 
     if (node.hasSkin()) {
-      let skin = this.currentScene.skins[node.skin];
-      let uniformBlockID = skin.uniformBlockID;
-      let joints = skin.joints;
-      let jointNode;
-
-      mat4.invert(this._inverseTransformMat4, worldMatrix);
-      // @tmp: assume joint nodes are always in the front of the scene node list
-      // so that their matrices are ready to use
-      for (let i = 0, len = skin.joints.length; i < len; i++) {
-        jointNode = joints[i].node;
-        mat4.mul(this._tmpMat4, jointNode.worldMatrix, skin.inverseBindMatrices[i]);
-        mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
-        skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
-      }
-
-      gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
-      gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
+      this._skinnedNodes.push(node);
     }
     
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {
         this._items.push({ 
           primitive: primitive, 
-          worldMatrix: worldMatrix
+          worldMatrix: node.worldMatrix
         });
       });
     }
     
     if (node.children) {
       node.children.forEach((child) => {
-        this._visitNode(child, worldMatrix);
+        this._visitNode(child, node.worldMatrix);
       });
     }
   }

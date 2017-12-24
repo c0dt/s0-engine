@@ -1,4 +1,3 @@
-import { GetAccessorData, Type2NumOfComponent } from "./Utils";
 import { vec4, quat } from "gl-matrix";
 
 export class AnimationSampler {
@@ -11,8 +10,8 @@ export class AnimationSampler {
   constructor(input, output, interpolation) {
     this._input = input;
     this._output = output;
-    this._inputTypedArray = GetAccessorData(input);
-    this._outputTypedArray = GetAccessorData(output);
+    this._inputTypedArray = input.data;
+    this._outputTypedArray = output.data;
     this._interpolation = interpolation !== undefined ? interpolation : 'LINEAR';
 
     this._currentIndex = 0;
@@ -20,11 +19,12 @@ export class AnimationSampler {
     this._endTime = this._inputTypedArray[this._inputTypedArray.length - 1];
     this._maxInput = this._endTime - this._inputTypedArray[0];
 
-    this._animationOutputValueVec4a = vec4.create();
-    this._animationOutputValueVec4b = vec4.create();
+    this._outputValueA = vec4.create();
+    this._outputValueB = vec4.create();
+  }
 
-    this.getValue(0);
-    this.getValue(11110);
+  get currentValue() {
+    return this._currentValue;
   }
 
   getValue(t) {
@@ -38,34 +38,30 @@ export class AnimationSampler {
       this._currentIndex++;
     }
 
-
     if (this._currentIndex >= length - 1) {
-        // loop
+      // loop
       t -= this._maxInput;
       this._currentIndex = 0;
     }
 
     // @tmp: assume no stride
-    let count = Type2NumOfComponent[this._output.type];
-    
+    let count = this._output.size; 
     let v4lerp = count === 4 ? quat.slerp : vec4.lerp;
-
     let i = this._currentIndex;
-    let o = i * count;
-    let on = o + count;
+    let offset = i * count;
+    let offsetNext = (i + 1) * count;
 
     let u = Math.max(0, t - this._inputTypedArray[i]) / (this._inputTypedArray[i + 1] - this._inputTypedArray[i]);
 
     for (let j = 0; j < count; j++) {
-      this._animationOutputValueVec4a[j] = this._outputTypedArray[o + j];
-      this._animationOutputValueVec4b[j] = this._outputTypedArray[on + j];
+      this._outputValueA[j] = this._outputTypedArray[offset + j];
+      this._outputValueB[j] = this._outputTypedArray[offsetNext + j];
     }
 
-    switch (this.interpolation) {
+    switch (this._interpolation) {
       case 'LINEAR': 
-        v4lerp(this._currentValue, this._animationOutputValueVec4a, this._animationOutputValueVec4b, u);
+        v4lerp(this._currentValue, this._outputValueA, this._outputValueB, u);
         break;
-
       default:
         break;
     }
@@ -76,11 +72,31 @@ export class AnimationChannel {
     this._sampler = sampler;
     this._target = target;
   }
+
+  get sampler() {
+    return this._sampler;
+  }
+
+  get target() {
+    return this._target;
+  }
 }
 export default class Animation {
   constructor(name, samplers, channels) {
     this._name = name;
     this._channels = channels;
     this._samplers = samplers;
+  }
+
+  get name() {
+    return this._name;
+  }
+
+  get channels() {
+    return this._channels;
+  }
+
+  get samplers() {
+    return this._samplers;
   }
 }

@@ -1,4 +1,3 @@
-import { GetAccessorData } from "./Utils";
 import { mat4 } from "gl-matrix";
 const NUM_MAX_JOINTS = 65;
 
@@ -10,7 +9,7 @@ export default class Skin {
 
     if (inverseBindMatrices) {
       // should be a mat4
-      this._inverseBindMatricesData = GetAccessorData(inverseBindMatrices);
+      this._inverseBindMatricesData = inverseBindMatrices.data;
       this._inverseBindMatrix = [];  // for calculation
       // @tmp: fixed length to coordinate with shader, for copy to UBO
       this._jointMatrixUniformBufferData = new Float32Array(NUM_MAX_JOINTS * 16);

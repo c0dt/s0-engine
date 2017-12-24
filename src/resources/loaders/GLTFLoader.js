@@ -177,7 +177,7 @@ export default class GLTFLoader extends JSONLoader {
             path: channel.target.path
           });
         });
-        console.log(new Animation(animation.name, samplers, channels));
+        animations.push(new Animation(animation.name, samplers, channels));
       });
     }
     context.animations = animations;
@@ -194,7 +194,8 @@ export default class GLTFLoader extends JSONLoader {
       accessors: undefined,
       meshes: undefined,
       textures: undefined,
-      rootNode: undefined
+      rootNode: undefined,
+      animations: undefined
     };
 
     let promises = [];

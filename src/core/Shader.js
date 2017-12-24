@@ -258,4 +258,12 @@ export default class Shader {
     }
     gl.uniform3fv(location, value);
   }
+
+  setBlockIndex(type, value) {
+    let location = this._uniformBlockIndices[type];
+    if (!location) {
+      this._uniformBlockIndices[type] = gl.getUniformBlockIndex(this._program, type);
+    }
+    gl.uniform3fv(location, value);
+  }
 }

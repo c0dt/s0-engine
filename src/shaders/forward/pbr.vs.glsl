@@ -56,7 +56,7 @@ void main()
 #endif
     vTexcoord = aTexcoord;
 #ifdef HAS_SKIN
-    vNormal = normalize(( uMVNormal * transpose(inverse(skinMatrix)) * vec4(aNormal, 0)).xyz);
+    vNormal = mat3(uM * skinMatrix) * aNormal;
     vec4 pos = uM * skinMatrix * vec4(aPosition, 1.0);
     gl_Position = uMVP * skinMatrix * vec4(aPosition, 1.0);
 #else

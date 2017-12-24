@@ -27,6 +27,10 @@ export default class Accessor {
     this._data = new typedArray(this._bufferView.buffer, offset, length);
   }
 
+  get data() {
+    return this._data;
+  }
+
   createBuffer() {
     this._buffer = gl.createBuffer();
   }
@@ -61,6 +65,10 @@ export default class Accessor {
 
   get count() {
     return this._count;
+  }
+
+  get size() {
+    return this._size;
   }
 
   get type() {

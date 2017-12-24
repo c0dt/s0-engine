@@ -1,5 +1,5 @@
 import Renderer from './Renderer';
-import { /* vec3, vec4, quat,*/ mat4 } from 'gl-matrix';
+import { /* vec3, vec4, quat,*/ mat4, vec4, vec3 } from 'gl-matrix';
 import Shader from '../core/Shader';
 
 import vsSkyBox from '../shaders/forward/cube-map.vs.glsl';
@@ -25,6 +25,8 @@ export default class ForwardRenderer extends Renderer {
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_MODE, gl.NONE);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
     this._items = [];
+
+    this._skinnedNodes = [];
 
     this._cube = new Cube();
     this._shaderSkybox = new Shader(vsSkyBox, fsSkyBox);
@@ -67,11 +69,27 @@ export default class ForwardRenderer extends Renderer {
 
     scenes.forEach((scene) => {
       let length = this._items.length;
-    
       if (length === 0) {
         let root = scene.root;
         this._visitNode(root, mat4.create());
       }
+      this._tmpMat4 = mat4.create();
+      this._inverseTransformMat4 = mat4.create();
+      this._skinnedNodes.forEach((node) => {
+        let skin = scene.skins[node.skin];
+        // let uniformBlockID = skin.uniformBlockID;
+        let joints = skin.joints;
+        mat4.invert(this._inverseTransformMat4, node.worldMatrix);
+        let jointsLength = skin.joints.length;
+        for (let i = 0; i < jointsLength; i++) {
+          let jointNode = joints[i].node;
+          mat4.mul(this._tmpMat4, jointNode.worldMatrix, skin.inverseBindMatrices[i]);
+          mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
+          skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
+        }
+        gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
+      });
   
       this.projection = camera.projection;
       this.view = camera.view;
@@ -107,21 +125,26 @@ export default class ForwardRenderer extends Renderer {
 
   //
   _visitNode(node, parentMatrix) {
+    mat4.multiply(node.worldMatrix, parentMatrix, node.localMatrix);
 
-    let worldMatrix = mat4.multiply(mat4.create(), parentMatrix, node.localMatrix);
+    this._skinnedNodes;
+
+    if (node.hasSkin()) {
+      this._skinnedNodes.push(node);
+    }
     
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {
         this._items.push({ 
           primitive: primitive, 
-          worldMatrix: worldMatrix
+          worldMatrix: node.worldMatrix
         });
       });
     }
     
     if (node.children) {
       node.children.forEach((child) => {
-        this._visitNode(child, worldMatrix);
+        this._visitNode(child, node.worldMatrix);
       });
     }
   }

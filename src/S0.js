@@ -13,6 +13,7 @@ import CubemapLoader from './resources/loaders/CubemapLoader';
 import TextureLoader from './resources/loaders/TextureLoader';
 
 import IBLManager from './managers/IBLManager';
+import LUTManager from './managers/LUTManager';
 
 class S0 {
   constructor() {
@@ -29,7 +30,7 @@ class S0 {
     canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
 
-    let gl = canvas.getContext('webgl2', { antialias: false });
+    let gl = canvas.getContext('webgl2', { antialias: true });
     let isWebGL2 = !!gl;
     if (!isWebGL2) {
       console.warn('WebGL 2 is not available.  See https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation How to get a WebGL 2 implementation');
@@ -83,6 +84,13 @@ class S0 {
         return Promise.resolve();
       });
     loadTasks.push(task);
+    task = ResoucePipeline.loadAsync('lut/clut_default_a.png', { name: 'clut_default_a', loaderClass: TextureLoader })
+    .then((texture) => {
+      texture.setTextureMode(0);
+      LUTManager.lutTexture = texture.texture;
+      return Promise.resolve();
+    });
+    loadTasks.push(task);
     this.primitives = {};
     this._scenes = [];
     let urls = [
@@ -98,6 +106,7 @@ class S0 {
       // 'SimpleTownLite/models/road_straight_mesh',
       // 'SimpleTownLite/models/store_small_mesh',
       'Ganfaul',
+      // 'arissa',
       // 'ElvenRuins'
       // 'Miniscene'
     ];
@@ -129,14 +138,49 @@ class S0 {
     this._time = time;
     window.requestAnimationFrame(this.animate.bind(this));
     this.render();
-    this.update(delta / 1000.0);
+    this.update(delta / 1000.0, this._time / 1000.0);
   }
+
+  _applyAnimation(animation, t) {
+    let j, lenj;
+    let channel, animationSampler, node;
+
+    for (j = 0, lenj = animation.samplers.length; j < lenj; j++) {
+      animation.samplers[j].getValue(t);
+    }
+
+    for (j = 0, lenj = animation.channels.length; j < lenj; j++) {
+      channel = animation.channels[j];
+      animationSampler = channel.sampler;
+      node = channel.target.node;
+
+      switch (channel.target.path) {
+        case 'rotation':
+          node.rotation = animationSampler.currentValue;
+          break;
+        case 'translation':
+          node.translation = animationSampler.currentValue;
+          break;
+        case 'scale':
+          node.scale = animationSampler.currentValue;
+          break;
+      }
+    }
+  }
+
 
   render() {
     this.renderer.render(this._scenes, this._camera);
   }
 
-  update(dt) {
+  update(dt, t) {
+    this._scenes.forEach((scene) => {
+      if (scene.animations) {
+        scene.animations.forEach((animation) => {
+          this._applyAnimation(animation, t);
+        });
+      }
+    });
     this.flyController.update(dt);
     this.mouseController.update(dt);
   }

@@ -16,6 +16,33 @@ export default class Node {
     this._skin = skin;
   }
 
+  get translation() {
+    return this._translation;
+  }
+
+  set translation(value) {
+    this._localMatrixDirty = true;
+    vec3.copy(this._translation, value);
+  }
+
+  get rotation() {
+    return this._rotation;
+  }
+
+  set rotation(value) {
+    this._localMatrixDirty = true;
+    quat.copy(this._rotation, value);
+  }
+
+  get scale() {
+    return this._scale;
+  }
+
+  set scale(value) {
+    this._localMatrixDirty = true;
+    vec3.copy(this._scale, value);
+  }
+
   hasSkin() {
     return this._skin !== undefined;
   }
@@ -33,6 +60,10 @@ export default class Node {
   }
 
   get localMatrix() {
+    if (this._localMatrixDirty) {
+      this._localMatrixDirty = false;
+      mat4.fromRotationTranslationScale(this._localMatrix, this._rotation, this._translation, this._scale);
+    }
     return this._localMatrix;
   }
 

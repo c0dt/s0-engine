@@ -1,3 +1,8 @@
+const TextureFilterMode = {
+  "Point": 0,
+  "Bilinear": 1,
+  "Triliner": 2
+};
 export default class Texture {
   constructor({ name, source, sampler }) {
     this._name = name;
@@ -44,6 +49,26 @@ export default class Texture {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
     gl.generateMipmap(gl.TEXTURE_2D);
 
+    gl.bindTexture(gl.TEXTURE_2D, null);
+  }
+
+  setTextureMode(mode) {
+    gl.bindTexture(gl.TEXTURE_2D, this._texture);
+    switch (mode) {
+      case TextureFilterMode.Point:
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        break;
+      case TextureFilterMode.Bilinear:
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        break;
+      case TextureFilterMode.Triliner:
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        break;
+    }
+    gl.generateMipmap(gl.TEXTURE_2D);
     gl.bindTexture(gl.TEXTURE_2D, null);
   }
 }
