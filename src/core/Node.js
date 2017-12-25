@@ -4,8 +4,11 @@ export default class Node {
   constructor({ name, translation, rotation, scale, skin }) {
     this._components = [];
     this._name = name;
+    translation = translation || [0, 0, 0];
     this._translation = vec3.fromValues(translation[0], translation[1], translation[2]);
+    rotation = rotation || [0, 0, 0, 0];
     this._rotation = quat.fromValues(rotation[0], rotation[1], rotation[2], rotation[3]);
+    scale = scale || [1.0, 1.0, 1.0];
     this._scale = vec3.fromValues(scale[0], scale[1], scale[2]);
     this._localMatrix = mat4.fromRotationTranslationScale(mat4.create(), this._rotation, this._translation, this._scale);
     this._worldMatrix = mat4.copy(mat4.create(), this._localMatrix);

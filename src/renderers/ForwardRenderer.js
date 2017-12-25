@@ -76,7 +76,7 @@ export default class ForwardRenderer extends Renderer {
       this._tmpMat4 = mat4.create();
       this._inverseTransformMat4 = mat4.create();
       this._skinnedNodes.forEach((node) => {
-        let skin = scene.skins[node.skin];
+        let skin = node.skin;
         // let uniformBlockID = skin.uniformBlockID;
         let joints = skin.joints;
         mat4.invert(this._inverseTransformMat4, node.worldMatrix);
@@ -98,7 +98,7 @@ export default class ForwardRenderer extends Renderer {
       
       if (length) {
         for (let i = 0; i < length; i++) {
-          this._render(this._items[i]);
+          this._render(scene, this._items[i]);
         }
       }
   
@@ -136,6 +136,7 @@ export default class ForwardRenderer extends Renderer {
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {
         this._items.push({ 
+          node: node,
           primitive: primitive, 
           worldMatrix: node.worldMatrix
         });
@@ -150,10 +151,12 @@ export default class ForwardRenderer extends Renderer {
   }
 
   //@TODO 
-  _render(item) {
+  _render(scene, item) {
     let MV = mat4.mul(mat4.create(), this.view, item.worldMatrix);
     let MVP = mat4.mul(mat4.create(), this.projection, MV);
     this.context = {
+      scene: scene,
+      node: item.node,
       MVP: MVP,
       MV: MV,
       M: item.worldMatrix,

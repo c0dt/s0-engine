@@ -9,7 +9,7 @@ export default class Accessor {
                 max, min, 
                 type }) {
     this._bufferView = bufferView;
-    this._byteOffset = byteOffset;
+    this._byteOffset = byteOffset || 0;
     this._byteStride = bufferView.byteStride;
     this._componentType = componentType;
     this._normalized = normalized;

@@ -106,9 +106,10 @@ class S0 {
       // 'SimpleTownLite/models/road_straight_mesh',
       // 'SimpleTownLite/models/store_small_mesh',
       // 'Ganfaul',
-      'arissa',
+      // 'arissa',
       // 'ElvenRuins'
-      // 'Miniscene'
+      // 'Miniscene',
+      'floor'
     ];
 
     Promise.all(loadTasks).then(

@@ -92,7 +92,8 @@ export default class Material {
     this.shader.setMat4('uMVP', context.MVP);
     this.shader.set3fv('uCameraPosition', context.cameraPosition);
 
-    this.shader.set4fv('uBaseColorFactor', this._pbrMetallicRoughness.baseColorFactor);
+    let baseColorFactor = this._pbrMetallicRoughness.baseColorFactor !== undefined ? this._pbrMetallicRoughness.baseColorFactor : [1, 1, 1, 1];
+    this.shader.set4fv('uBaseColorFactor', baseColorFactor);
 
     if (this.shader.hasBaseColorMap()) {
       this.shader.setInt('uBaseColorTexture', this._baseColorTexture.index);
@@ -106,8 +107,10 @@ export default class Material {
     if (this.shader.hasMetalRoughnessMap()) {
       this.shader.setInt('uMetallicRoughnessTexture', this._metallicRoughnessTexture.index);
       context.activeAndBindTexture(this._metallicRoughnessTexture);
-      this.shader.set1f('uRoughnessFactor', this._pbrMetallicRoughness.roughnessFactor);
-      this.shader.set1f('uMetallicFactor', this._pbrMetallicRoughness.metallicFactor);
+      let roughnessFactor = this._pbrMetallicRoughness.roughnessFactor !== undefined ? this._pbrMetallicRoughness.roughnessFactor : 1.0;
+      this.shader.set1f('uRoughnessFactor', roughnessFactor);
+      let metallicFactor = this._pbrMetallicRoughness.metallicFactor !== undefined ? this._pbrMetallicRoughness.metallicFactor : 1.0;
+      this.shader.set1f('uMetallicFactor', metallicFactor);
     }
     if (this.shader.hasOcclusionMap()) {
       this.shader.setInt('uOcclusionTexture', this._occlusionTexture.index);
