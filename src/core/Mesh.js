@@ -1,4 +1,3 @@
-import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 import Primitive from './Primitive';
 
 export default class Mesh {

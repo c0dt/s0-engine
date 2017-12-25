@@ -90,7 +90,7 @@ export default class ForwardRenderer extends Renderer {
         gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
         gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
       });
-  
+      this._skinnedNodes = [];
       this.projection = camera.projection;
       this.view = camera.view;
       this.cameraPosition = camera.position;

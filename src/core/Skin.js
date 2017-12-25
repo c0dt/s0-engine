@@ -1,11 +1,13 @@
 import { mat4 } from "gl-matrix";
 const NUM_MAX_JOINTS = 65;
+let UniformBlockIDCounter = 0;
 
 export default class Skin {
   constructor({ inverseBindMatrices, joints, skeleton }) {
     this._inverseBindMatrices = inverseBindMatrices;
     this._joints = joints;
     this._skeleton = skeleton;
+    this._uniformBlockID = UniformBlockIDCounter++;
 
     if (inverseBindMatrices) {
       // should be a mat4
@@ -39,12 +41,15 @@ export default class Skin {
 
     this._jointMatrixUniformBuffer = gl.createBuffer();
 
-    gl.bindBufferBase(gl.UNIFORM_BUFFER, 0, this._jointMatrixUniformBuffer);
-
+    gl.bindBufferBase(gl.UNIFORM_BUFFER, this._uniformBlockID, this._jointMatrixUniformBuffer);
     gl.bindBuffer(gl.UNIFORM_BUFFER, this._jointMatrixUniformBuffer);
     gl.bufferData(gl.UNIFORM_BUFFER, this._jointMatrixUniformBufferData, gl.DYNAMIC_DRAW);
     gl.bufferSubData(gl.UNIFORM_BUFFER, 0, this._jointMatrixUniformBufferData);
     gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+  }
+
+  get uniformBlockID() {
+    return this._uniformBlockID;
   }
 
   get joints() {

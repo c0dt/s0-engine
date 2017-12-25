@@ -67,6 +67,9 @@ export default class Primitive {
       this.prepare();
       return;
     }
+    if (context.context.node.skin) {
+      this._material.skinUniformBlockID = context.context.node.skin.uniformBlockID;
+    }
     context.useMaterial(this._material);
     context.bindVertexArray(this._vao);
     if (this._indices !== null) {

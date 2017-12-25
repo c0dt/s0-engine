@@ -107,7 +107,6 @@ export default class GLTFLoader extends JSONLoader {
       });
     }
     context.materials = materials;
-    console.log(context.materials);
     return context;
   }
 
@@ -123,12 +122,21 @@ export default class GLTFLoader extends JSONLoader {
   }
 
   _processNodes(glTF, context) {
-    let identity = mat4.create();
+    let nodes = [];
+    if (glTF.nodes) {
+      glTF.nodes.forEach((node) => {
+        nodes.push(new Node(node, mat4.create()));
+      });
+    }
+    context.nodes = nodes;
+    return context;
+  }
+
+  _processNodesHierarchy(glTF, context) {
     let rootNode = undefined;
-    context.nodes = [];
     if (glTF.nodes && glTF.nodes.length > 0) {
       let node = glTF.nodes[0];
-      context.nodes[0] = rootNode = new Node(node, identity);
+      rootNode = context.nodes[0];
       this._setupChildren(rootNode, node, glTF.nodes, context);
     }
     context.rootNode = rootNode;
@@ -139,24 +147,19 @@ export default class GLTFLoader extends JSONLoader {
     let skins = [];
     if (glTF.skins && glTF.skins.length > 0) {
       glTF.skins.forEach((skin) => {
-      
         let joints = [];
-  
         skin.joints.forEach((joint, index) => {
           joints.push({
             id: index,
             node: context.nodes[joint]
           });
         });
-  
         skins.push(new Skin({
           inverseBindMatrices: context.accessors[skin.inverseBindMatrices],
           joints: joints,
-          skeleton: context.nodes[skin.skeleton]
+          skeleton: skin.skeleton
         }));
       });
-
-      console.log(skins);
     }
     context.skins = skins;
     return context;
@@ -212,6 +215,7 @@ export default class GLTFLoader extends JSONLoader {
       this._processNodes(glTF, context);
       this._processSkins(glTF, context);
       this._processAnimations(glTF, context);
+      this._processNodesHierarchy(glTF, context);
       return new Scene(context);
     });
   }
@@ -219,13 +223,13 @@ export default class GLTFLoader extends JSONLoader {
   _setupChildren(obj, node, nodes, context) {
     if (node.mesh !== undefined) {
       obj.mesh = context.meshes[node.mesh];
+      obj.skin = context.skins[node.skin];
     }
     if (node.children) {
       node.children.forEach((child) => {
         let childNode = nodes[child];
-        let childNodeIntance = new Node(childNode, obj.worldMatrix);
-        context.nodes[child] = childNodeIntance;
-        obj.addChild(childNodeIntance);
+        let childNodeIntance = context.nodes[child];
+        childNodeIntance.parent = obj;
         this._setupChildren(childNodeIntance, childNode, nodes, context);
       });
     }

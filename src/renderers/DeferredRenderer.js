@@ -228,9 +228,8 @@ export default class DeferredRenderer extends Renderer {
         this._visitNode(root, mat4.create());
       }
 
-      this._skinnedNodes.forEach((node) => {
-        let skin = scene.skins[node.skin];
-      // let uniformBlockID = skin.uniformBlockID;
+      this._skinnedNodes.forEach((node, index) => {
+        let skin = node.skin;
         let joints = skin.joints;
 
         mat4.invert(this._inverseTransformMat4, node.worldMatrix);
@@ -240,14 +239,15 @@ export default class DeferredRenderer extends Renderer {
           mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
           skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
         }
-
         gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
         gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
+          // this._render(scene, this._items[index]);
       });
+      this._skinnedNodes = [];
 
       length = this._items.length;
       for (let i = 0; i < length; i++) {
-        this._render(this._items[i]);
+        this._render(scene, this._items[i]);
       }
       this._items = [];
     });
@@ -308,7 +308,8 @@ export default class DeferredRenderer extends Renderer {
     
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {
-        this._items.push({ 
+        this._items.push({
+          node: node,
           primitive: primitive, 
           worldMatrix: node.worldMatrix
         });
@@ -351,10 +352,12 @@ export default class DeferredRenderer extends Renderer {
   }
 
   //@TODO 
-  _render(item) {
+  _render(scene, item) {
     let MV = mat4.mul(mat4.create(), this.view, item.worldMatrix);
     let MVP = mat4.mul(mat4.create(), this.projection, MV);
     this.context = {
+      scene: scene,
+      node: item.node,
       MVP: MVP,
       MV: MV,
       M: item.worldMatrix,

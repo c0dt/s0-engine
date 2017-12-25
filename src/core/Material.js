@@ -15,10 +15,10 @@ export default class Material {
     this._alphaMode = alphaMode;
     this._pbrMetallicRoughness = pbrMetallicRoughness;
 
-    let flag = 0;
+    this._flag = 0;
 
     if (normalTexture) {
-      flag |= ShaderManager.bitMasks.HAS_NORMALMAP;
+      this._flag |= ShaderManager.bitMasks.HAS_NORMALMAP;
       this._normalTexture = {
         texture: textures[normalTexture.index],
         index: normalTexture.index,
@@ -26,14 +26,14 @@ export default class Material {
       };
     }
     if (occlusionTexture) {
-      flag |= ShaderManager.bitMasks.HAS_OCCLUSIONMAP;
+      this._flag |= ShaderManager.bitMasks.HAS_OCCLUSIONMAP;
       this._occlusionTexture = {
         texture: textures[occlusionTexture.index],
         index: occlusionTexture.index
       };
     }
     if (emissiveTexture) {
-      flag |= ShaderManager.bitMasks.HAS_EMISSIVEMAP;
+      this._flag |= ShaderManager.bitMasks.HAS_EMISSIVEMAP;
       this._emissiveTexture = {
         texture: textures[emissiveTexture.index],
         index: emissiveTexture.index
@@ -41,22 +41,20 @@ export default class Material {
     }
     if (pbrMetallicRoughness) {
       if (pbrMetallicRoughness.baseColorTexture) {
-        flag |= ShaderManager.bitMasks.HAS_BASECOLORMAP;
+        this._flag |= ShaderManager.bitMasks.HAS_BASECOLORMAP;
         this._baseColorTexture = {
           texture: textures[pbrMetallicRoughness.baseColorTexture.index],
           index: pbrMetallicRoughness.baseColorTexture.index
         };
       }
       if (pbrMetallicRoughness.metallicRoughnessTexture) {
-        flag |= ShaderManager.bitMasks.HAS_METALROUGHNESSMAP;
+        this._flag |= ShaderManager.bitMasks.HAS_METALROUGHNESSMAP;
         this._metallicRoughnessTexture = {
           texture: textures[pbrMetallicRoughness.metallicRoughnessTexture.index],
           index: pbrMetallicRoughness.metallicRoughnessTexture.index
         };
       }
     }
-    flag |= ShaderManager.bitMasks.HAS_SKIN;
-    this._shader = ShaderManager.getShader("PBR", flag);
   }
 
   get shader() {
@@ -75,7 +73,19 @@ export default class Material {
     return this._metallicRoughnessTexture;
   }
 
+  set skinUniformBlockID(value) {
+    this._flag |= ShaderManager.bitMasks.HAS_SKIN;
+    this._uniformBlockID = value;
+  }
+
+  get skinUniformBlockID() {
+    return this._uniformBlockID;
+  }
+
   use(context) {
+    if (!this._shader) {
+      this._shader = ShaderManager.getShader("PBR", this._flag);
+    }
     this.shader.use();
     this.shader.setMat4('uM', context.M);
     this.shader.setMat4('uMV', context.MV);
@@ -111,7 +121,7 @@ export default class Material {
     }
 
     if (this.shader.hasSkin()) {
-      this.shader.setInt('uJointMatrix', 0);
+      this.shader.setBlockIndex('JointMatrix', this._uniformBlockID);
     }
 
     IBLManager.activeAndBindTextures();

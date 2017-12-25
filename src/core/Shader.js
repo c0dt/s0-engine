@@ -171,7 +171,7 @@ export default class Shader {
 
     // uniform block id
     if (this.hasSkin()) {
-      this._uniformBlockIndices.uJointMatrix = gl.getUniformBlockIndex(this._program, "uJointMatrix");
+      this._uniformBlockIndices.uJointMatrix = gl.getUniformBlockIndex(this._program, "JointMatrix");
     }
 
     this._uniformLocations.MVP = gl.getUniformLocation(this._program, 'uMVP');
@@ -222,7 +222,7 @@ export default class Shader {
   setMat4(type, mat4) {
     let location = this._uniformLocations[type];
     if (!location) {
-      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
     }
     gl.uniformMatrix4fv(location, false, mat4);
   }
@@ -230,7 +230,7 @@ export default class Shader {
   setInt(type, value) {
     let location = this._uniformLocations[type];
     if (!location) {
-      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
     }
     gl.uniform1i(location, value);
   }
@@ -238,7 +238,7 @@ export default class Shader {
   set1f(type, value) {
     let location = this._uniformLocations[type];
     if (!location) {
-      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
     }
     gl.uniform1f(location, value);
   }
@@ -246,7 +246,7 @@ export default class Shader {
   set4fv(type, value) {
     let location = this._uniformLocations[type];
     if (!location) {
-      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
     }
     gl.uniform4fv(location, value);
   }
@@ -254,7 +254,7 @@ export default class Shader {
   set3fv(type, value) {
     let location = this._uniformLocations[type];
     if (!location) {
-      this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
     }
     gl.uniform3fv(location, value);
   }
@@ -262,8 +262,8 @@ export default class Shader {
   setBlockIndex(type, value) {
     let location = this._uniformBlockIndices[type];
     if (!location) {
-      this._uniformBlockIndices[type] = gl.getUniformBlockIndex(this._program, type);
+      location = this._uniformBlockIndices[type] = gl.getUniformBlockIndex(this._program, type);
     }
-    gl.uniform3fv(location, value);
+    gl.uniformBlockBinding(this._program, location, value);
   }
 }

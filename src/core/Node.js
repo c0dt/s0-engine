@@ -1,19 +1,27 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 
 export default class Node {
-  constructor({ name, translation, rotation, scale, skin }, parentWorldMatrix) {
+  constructor({ name, translation, rotation, scale, skin }) {
     this._components = [];
     this._name = name;
     this._translation = vec3.fromValues(translation[0], translation[1], translation[2]);
     this._rotation = quat.fromValues(rotation[0], rotation[1], rotation[2], rotation[3]);
     this._scale = vec3.fromValues(scale[0], scale[1], scale[2]);
-    
     this._localMatrix = mat4.fromRotationTranslationScale(mat4.create(), this._rotation, this._translation, this._scale);
-
-    this._parentWorldMatrix = parentWorldMatrix;
-    this._worldMatrix = mat4.multiply(mat4.create(), this._parentWorldMatrix, this._localMatrix);
+    this._worldMatrix = mat4.copy(mat4.create(), this._localMatrix);
     this._children = [];
     this._skin = skin;
+  }
+
+  set parent(value) {
+    this._parent = value;
+    if (value) {
+      value.addChild(this);
+      mat4.multiply(this._worldMatrix, value.worldMatrix, this._localMatrix);
+    } else {
+      value.removeChild(this);
+      mat4.copy(this._worldMatrix, this._localMatrix);
+    }
   }
 
   get translation() {
@@ -51,8 +59,22 @@ export default class Node {
     return this._skin;
   }
 
+  set skin(value) {
+    this._skin = value;
+  }
+
   addChild(node) {
-    this._children.push(node);
+    let index = this._children.indexOf(node);
+    if (index === -1) {
+      this._children.push(node);
+    }
+  }
+
+  removeChild(node) {
+    let index = this._children.indexOf(node);
+    if (index > -1) {
+      this._children.splice(index, 1);
+    }
   }
 
   get worldMatrix() {
