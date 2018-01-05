@@ -224,8 +224,10 @@ export default class DeferredRenderer extends Renderer {
     scenes.forEach((scene) => {
       let length = this._items.length;
       if (length === 0) {
-        let root = scene.root;
-        this._visitNode(root, mat4.create());
+        let hierarchy = scene.hierarchy;
+        hierarchy.forEach((node) => {
+          this._visitNode(node, mat4.create());
+        });
       }
 
       this._skinnedNodes.forEach((node, index) => {

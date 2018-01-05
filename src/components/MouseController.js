@@ -1,7 +1,8 @@
 import Component from './Component';
 
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-import Camera from '../Camera';
+import Camera from '../core/Camera';
+import CameraManager from '../managers/CameraManager';
 
 let fix = function(e) {
   if (e.offsetX === undefined && e.offsetY === undefined) {
@@ -72,7 +73,7 @@ export default class MouseController extends Component {
       let rotation = mat4.create();
       mat4.rotate(rotation, rotation, Math.PI / 180 * pointer.dX, vec3.fromValues(0, 1, 0));
       mat4.rotate(rotation, rotation, Math.PI / 180 * pointer.dY, vec3.fromValues(1, 0, 0));
-      mat4.mul(this.target.localMatrix, rotation, this.target.localMatrix);
+      mat4.mul(Camera.current.view, rotation, Camera.current.view);
     }
   }
 

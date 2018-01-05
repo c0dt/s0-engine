@@ -1,11 +1,12 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
+import Node from './Node';
 
 export default class Scene {
   constructor({ buffers, 
     bufferViews, 
     accessors, 
     meshes, 
-    rootNode, 
+    nodesHierarchy, 
     textures,
     materials,
     skins,
@@ -15,15 +16,15 @@ export default class Scene {
     this._bufferViews = bufferViews;
     this._accessors = accessors;
     this._meshes = meshes;
-    this._rootNode = rootNode;
+    this._nodesHierarchy = nodesHierarchy;
     this._textures = textures;
     this._materials = materials;
     this._skins = skins;
     this._animations = animations;
   }
 
-  get root() {
-    return this._rootNode;
+  get hierarchy() {
+    return this._nodesHierarchy;
   }
 
   get skins() {

@@ -6,9 +6,7 @@ import ForwardRenderer from './renderers/ForwardRenderer';
 import DeferredRenderer from './renderers/DeferredRenderer';
 import ResoucePipeline from './resources/ResourcePipeline';
 
-import Cubemap from './core/Cubemap';
-
-import Camera from './Camera';
+import Camera from './core/Camera';
 import CubemapLoader from './resources/loaders/CubemapLoader';
 import TextureLoader from './resources/loaders/TextureLoader';
 
@@ -41,8 +39,8 @@ class S0 {
     }
     window.gl = gl;
 
-    this.renderType = 'deferred';
-    // this.renderType = 'forward';
+    // this.renderType = 'deferred';
+    this.renderType = 'forward';
 
     if (this.renderType === 'deferred') {
       this.renderer = new DeferredRenderer(canvas.width, canvas.height);
@@ -109,7 +107,7 @@ class S0 {
       // 'arissa',
       // 'ElvenRuins'
       // 'Miniscene',
-      'floor'
+      'FantasyDungeon'
     ];
 
     Promise.all(loadTasks).then(
@@ -125,7 +123,9 @@ class S0 {
           );
         });
       }
-    );
+    ).catch((e) => {
+      console.error(e);
+    });
 
     window.requestAnimationFrame(this.animate.bind(this));
   }

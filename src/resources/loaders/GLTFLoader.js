@@ -124,8 +124,8 @@ export default class GLTFLoader extends JSONLoader {
   _processNodes(glTF, context) {
     let nodes = [];
     if (glTF.nodes) {
-      glTF.nodes.forEach((node) => {
-        nodes.push(new Node(node, mat4.create()));
+      glTF.nodes.forEach((node, index) => {
+        nodes.push(new Node(node, index));
       });
     }
     context.nodes = nodes;
@@ -133,13 +133,17 @@ export default class GLTFLoader extends JSONLoader {
   }
 
   _processNodesHierarchy(glTF, context) {
-    let rootNode = undefined;
-    if (glTF.nodes && glTF.nodes.length > 0) {
-      let node = glTF.nodes[0];
-      rootNode = context.nodes[0];
-      this._setupChildren(rootNode, node, glTF.nodes, context);
+    let nodesHierarchy = [];
+    let nodesStatus = {};
+    if (glTF.nodes && context.nodes) {
+      context.nodes.forEach((node) => {
+        if (!nodesStatus[node.id]) {
+          this._postprocessNode(glTF, context, node, nodesStatus);
+          nodesHierarchy.push(node);
+        }
+      });
     }
-    context.rootNode = rootNode;
+    context.nodesHierarchy = nodesHierarchy;
     return context;
   }
 
@@ -220,17 +224,14 @@ export default class GLTFLoader extends JSONLoader {
     });
   }
 
-  _setupChildren(obj, node, nodes, context) {
-    if (node.mesh !== undefined) {
-      obj.mesh = context.meshes[node.mesh];
-      obj.skin = context.skins[node.skin];
-    }
+  _postprocessNode(glTF, context, node, nodesStatus) {
+    nodesStatus[node.id] = true;
+    node.postprocess(context);
     if (node.children) {
       node.children.forEach((child) => {
-        let childNode = nodes[child];
         let childNodeIntance = context.nodes[child];
-        childNodeIntance.parent = obj;
-        this._setupChildren(childNodeIntance, childNode, nodes, context);
+        childNodeIntance.parent = node;
+        this._postprocessNode(glTF, context, childNodeIntance, nodesStatus);
       });
     }
   }

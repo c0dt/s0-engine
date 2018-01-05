@@ -1,29 +1,29 @@
-export default class glMatrixVec3Proxy{
+export default class glMatrixVec3Proxy {
   constructor(vec3Target) {
     this._vec3 = vec3Target;
   }
     
-  get x(){
+  get x() {
     return this._vec3[0];
   }
     
-  set x(v){
+  set x(v) {
     this._vec3[0] = v;
   }
     
-  get y(){
+  get y() {
     return this._vec3[1];
   }
     
-  set y(v){
+  set y(v) {
     this._vec3[1] = v;
   }
     
-  get z(){
+  get z() {
     return this._vec3[2];
   }
     
-  set z(v){
+  set z(v) {
     this._vec3[2] = v;
   }
     
