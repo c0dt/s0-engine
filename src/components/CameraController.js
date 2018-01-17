@@ -4,5 +4,11 @@ import Camera from '../core/Camera';
 import CameraManager from '../managers/CameraManager';
 
 export default class CameraController extends Component {
+  start() {
 
+  }
+  
+  update(dt) {
+      
+  }
 }

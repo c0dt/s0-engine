@@ -1,7 +1,6 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 import { glm } from './glm';
-import FlyController from './components/FlyController';
-import MouseController from './components/MouseController';
+import CameraController from './components/CameraController';
 import ForwardRenderer from './renderers/ForwardRenderer';
 import DeferredRenderer from './renderers/DeferredRenderer';
 import ResoucePipeline from './resources/ResourcePipeline';
@@ -12,6 +11,7 @@ import TextureLoader from './resources/loaders/TextureLoader';
 
 import IBLManager from './managers/IBLManager';
 import LUTManager from './managers/LUTManager';
+import Input from './managers/Input';
 
 class S0 {
   constructor() {
@@ -39,6 +39,8 @@ class S0 {
     }
     window.gl = gl;
 
+    Input.initWith(document);
+
     // this.renderType = 'deferred';
     this.renderType = 'forward';
 
@@ -51,8 +53,7 @@ class S0 {
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     //
-    this.flyController = new FlyController;
-    this.mouseController = new MouseController;
+    this._cameraController = new CameraController;
 
     this.projection = mat4.create();
     mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
@@ -116,7 +117,6 @@ class S0 {
           ResoucePipeline.loadAsync(`${url}/model.gltf`).then(
             (asset) => {
               this._scenes.push(asset);
-              this.mouseController.target = asset.root;
               console.log(asset);
               return asset;
             }
@@ -182,8 +182,8 @@ class S0 {
         });
       }
     });
-    this.flyController.update(dt);
-    this.mouseController.update(dt);
+
+    this._cameraController.update(dt);
   }
 }
 
