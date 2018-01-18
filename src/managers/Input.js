@@ -42,10 +42,15 @@ class Input {
   _handlePointerDown(event) {
     fix(event);
     event.preventDefault();
-
+    
+    this._pointerId = event.pointerId;
     this._pointers[event.pointerId] = {
       startX: event.offsetX,
       startY: event.offsetY,
+      x: event.offsetX,
+      y: event.offsetY,
+      dX: 0,
+      dY: 0,
       timestamp: Date.now()
     };
   }
@@ -64,14 +69,16 @@ class Input {
       pointer.x = event.offsetX;
       pointer.y = event.offsetY;
       pointer.dt = Date.now() - pointer.timestamp;
-
-      console.log(pointer);
     }
   }
 
   _handlePointerUp(event) {
     event.preventDefault();
     delete this._pointers[event.pointerId];
+  }
+
+  get pointer() {
+    return this._pointers[this._pointerId];
   }
 }
 

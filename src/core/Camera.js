@@ -59,4 +59,8 @@ export default class Camera {
   get position() {
     return this._position;
   }
+
+  set position(v) {
+    this._position = v;
+  }
 }
