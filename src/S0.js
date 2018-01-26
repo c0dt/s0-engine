@@ -110,7 +110,6 @@ class S0 {
       // 'SimpleTownLite/models/road_straight_mesh',
       // 'SimpleTownLite/models/store_small_mesh',
       // 'Ganfaul',
-      // 'arissa',
       // 'ElvenRuins'
       // 'Miniscene',
       'FantasyDungeon'

@@ -8,7 +8,7 @@ uniform sampler2D combinePass;
 uniform sampler2D lut;
 
 void main() {
-
+	
 	vec3 combineColor = texture(combinePass, uv).rgb;
 
 	// blue channel index
