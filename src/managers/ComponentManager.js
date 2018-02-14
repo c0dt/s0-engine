@@ -1,16 +1,32 @@
 class ComponentManager {
     
   constructor() {
-    this._components = {};
+    this._lastFreeIndex = 0;
+    this._components = [];
+    this._componentsMap = {};
   }
 
   get(uuid) {
-    return this._components[uuid];
+    let index = this._componentsMap[uuid];
+    return this._components[index];
   }
 
   add(component) {
     let uuid = component.uuid;
-    this._components[uuid] = component;
+    if (this._components.length === this._lastFreeIndex) {
+      this._components.push(component);
+      this._componentsMap[uuid] = this._lastFreeIndex;
+      this._lastFreeIndex++;
+    } else {
+      this._components[this._lastFreeIndex] = component;
+      this._componentsMap[uuid] = this._lastFreeIndex;
+    }
+  }
+
+  update(dt) {
+    this._components.forEach((component) => {
+      component.update && component.update(dt);
+    });
   }
 }
     

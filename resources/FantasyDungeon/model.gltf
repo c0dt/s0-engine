@@ -429,7 +429,17 @@
                 7.481131553649902, 
                 5.34366512298584, 
                 6.5076398849487305
-            ]
+            ],
+            "extras" : {
+                "components" : [
+                    {
+                        "id" : "CameraController"
+                    },
+                    {
+                        "id" : "KeyboardController"
+                    }
+                ]
+            }
         }, 
         {
             "children" : [
@@ -441,7 +451,15 @@
                 0.009999999776482582, 
                 0.009999999776482582, 
                 0.009999999776482582
-            ]
+            ],
+            "extras" : {
+                "components" : [
+                    {
+                        "id" : "ColumnController",
+                        "attributes" : {}
+                    }
+                ]
+            }
         }, 
         {
             "mesh" : 0, 

@@ -17,6 +17,8 @@ import Input from './managers/Input';
 import CameraController from './components/CameraController';
 import KeyboardController from './components/KeyboardController';
 
+import ComponentManager from './managers/ComponentManager';
+
 class S0 {
   constructor() {
         
@@ -187,8 +189,7 @@ class S0 {
       }
     });
 
-    this._cameraController.update(dt);
-    this._keyboardController.update(dt);
+    ComponentManager.update(dt);
   }
 }
 

@@ -11,11 +11,15 @@
   "devDependencies": {
     "babel-cli": "^6.26.0",
     "babel-core": "^6.26.0",
+    "babel-eslint": "^7.2.3",
     "babel-loader": "^7.1.2",
     "babel-preset-env": "^1.6.1",
     "browser-sync": "^2.23.6",
     "browser-sync-webpack-plugin": "^1.2.0",
     "copy-webpack-plugin": "^4.3.1",
+    "eslint": "^3.19.0",
+    "eslint-plugin-import": "^2.8.0",
+    "eslint-plugin-private-props": "^0.3.0",
     "glslify-loader": "^1.0.2",
     "raw-loader": "^0.5.1",
     "webpack": "^3.10.0"

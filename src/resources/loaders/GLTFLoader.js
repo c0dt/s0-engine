@@ -227,8 +227,9 @@ export default class GLTFLoader extends JSONLoader {
   _postprocessNode(glTF, context, node, nodesStatus) {
     nodesStatus[node.id] = true;
     node.postprocess(context);
-    if (node.children) {
-      node.children.forEach((child) => {
+    let children = glTF.nodes[node.id].children;
+    if (children) {
+      children.forEach((child) => {
         let childNodeIntance = context.nodes[child];
         childNodeIntance.parent = node;
         this._postprocessNode(glTF, context, childNodeIntance, nodesStatus);

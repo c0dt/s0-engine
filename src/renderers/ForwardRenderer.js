@@ -80,7 +80,6 @@ export default class ForwardRenderer extends Renderer {
       this._inverseTransformMat4 = mat4.create();
       this._skinnedNodes.forEach((node) => {
         let skin = node.skin;
-        // let uniformBlockID = skin.uniformBlockID;
         let joints = skin.joints;
         mat4.invert(this._inverseTransformMat4, node.worldMatrix);
         let jointsLength = skin.joints.length;
@@ -119,7 +118,6 @@ export default class ForwardRenderer extends Renderer {
       this._shaderSkybox.use();
       this._shaderSkybox.setMat4('uMVP', MVP);
       this._shaderSkybox.setInt('u_environment', 0);
-      // IBLManager.activeAndBindTextures();
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
       this._cube.draw();

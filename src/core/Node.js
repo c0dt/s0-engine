@@ -1,7 +1,9 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
+import ObjectFactory from './ObjectFactory';
+import ComponentManager from '../managers/ComponentManager';
 
 export default class Node {
-  constructor({ name, translation, rotation, scale, skin, mesh } = {}, id) {
+  constructor({ name, translation, rotation, scale, skin, mesh, children, extras } = {}, id) {
     this._id = id;
     this._components = [];
     this._name = name;
@@ -16,6 +18,14 @@ export default class Node {
     this._children = [];
     this._skin = skin;
     this._mesh = mesh;
+    this._extras = extras;
+    if (this._extras && this._extras.components) {
+      this._extras.components.forEach((componentInfo) => {
+        let componentClass = ObjectFactory.get(componentInfo.id);
+        let component = new componentClass(this);
+        this._components.push(Object.assign(component, componentInfo.attributes));
+      });
+    }
   }
 
   get id() {
@@ -25,6 +35,10 @@ export default class Node {
   postprocess(context) {
     this._mesh = context.meshes[this._mesh];
     this._skin = context.skins[this._skin];
+    this._components.forEach((component) => {
+      ComponentManager.add(component);
+      component.__onload();
+    });
   }
 
   set parent(value) {

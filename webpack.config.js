@@ -35,7 +35,7 @@ module.exports = {
   ],
   module: {
     loaders: [
-      { test: /\.js$/, loader: 'babel-loader', include: path.join(__dirname, 'src') },
+      { test: /\.js$/, loader: 'babel-loader', include: [ path.join(__dirname, 'src') ], exclude: /node_modules/ },
       { test: /\.(glsl|frag|vert)$/, loader: 'raw-loader', exclude: /node_modules/ },
       { test: /\.(glsl|frag|vert)$/, loader: 'glslify-loader', exclude: /node_modules/ },
       { test: /\.worker\.js$/, loader: "worker!babel?presets[]=es2015" }
