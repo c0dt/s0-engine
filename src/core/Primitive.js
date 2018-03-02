@@ -1,3 +1,4 @@
+import S0 from '../S0';
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 // #define POSITION_LOCATION 0
 // #define NORMAL_LOCATION 1
@@ -35,8 +36,8 @@ export default class Primitive {
   }
 
   prepare() {
-    this._vao = gl.createVertexArray();
-    gl.bindVertexArray(this._vao);
+    this._vao = S0.isWebGL2 ? gl.createVertexArray() : ext.createVertexArrayOES();
+    S0.isWebGL2 ? gl.bindVertexArray(this._vao) : ext.bindVertexArrayOES(this._vao);
     for (let key in this._attributes) {
       if (this._attributes.hasOwnProperty(key)) {
         let attribute = this._attributes[key];
@@ -58,7 +59,8 @@ export default class Primitive {
       this._indicesOffset = this._indices._byteOffset;
     }
 
-    gl.bindVertexArray(null);
+    // gl.bindVertexArray(null);
+    S0.isWebGL2 ? gl.bindVertexArray(null) : ext.bindVertexArrayOES(null);
   }
   
   //@TODO 

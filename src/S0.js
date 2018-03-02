@@ -13,11 +13,8 @@ import IBLManager from './managers/IBLManager';
 import LUTManager from './managers/LUTManager';
 import Input from './managers/Input';
 
-
-import CameraController from './components/CameraController';
-import KeyboardController from './components/KeyboardController';
-
 import ComponentManager from './managers/ComponentManager';
+import LegacyRenderer from './renderers/LegacyRenderer';
 
 class S0 {
   constructor() {
@@ -33,11 +30,23 @@ class S0 {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
-
     let gl = canvas.getContext('webgl2', { antialias: true });
-    let isWebGL2 = !!gl;
-    if (!isWebGL2) {
+    this.isWebGL2 = !!gl;
+    if (!this.isWebGL2) {
       console.warn('WebGL 2 is not available.  See https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation How to get a WebGL 2 implementation');
+      gl = canvas.getContext('webgl');
+      this.isWebGL = !!gl;
+      if (this.isWebGL) {
+        let ext;
+        ext = gl.getExtension('OES_vertex_array_object');
+        if (ext === null) {
+          console.error('vertex array object not supported');
+          return;
+        }
+        window.ext = ext;
+      } else {
+        console.warn('WebGL is not available');
+      }
     }
     if (!gl.getExtension("EXT_color_buffer_float")) {
       console.warn("FLOAT color buffer not available");
@@ -48,19 +57,18 @@ class S0 {
     Input.initWith(document);
 
     // this.renderType = 'deferred';
-    this.renderType = 'forward';
+    // this.renderType = 'forward';
 
-    if (this.renderType === 'deferred') {
-      this.renderer = new DeferredRenderer(canvas.width, canvas.height);
-    } else if (this.renderType === 'forward') {
-      this.renderer = new ForwardRenderer(canvas.width, canvas.height);
-    }
+    // if (this.renderType === 'deferred') {
+    //   this.renderer = new DeferredRenderer(canvas.width, canvas.height);
+    // } else if (this.renderType === 'forward') {
+    //   this.renderer = new ForwardRenderer(canvas.width, canvas.height);
+    // }
+    this.renderer = new LegacyRenderer(canvas.width, canvas.height);
     
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);
     //
-    this._cameraController = new CameraController;
-    this._keyboardController = new KeyboardController;
 
     this.projection = mat4.create();
     mat4.perspective(this.projection, glm.radians(45.0), canvas.width / canvas.height, 0.1, 100000.0);
@@ -100,27 +108,13 @@ class S0 {
     this.primitives = {};
     this._scenes = [];
     let urls = [
-      // 'SimpleTownLite/models/apartment_large_thin_short',
-      // 'SimpleTownLite/models/billboard_mesh',
-      // 'SimpleTownLite/models/bin_mesh',
-      // 'SimpleTownLite/models/dumpster_mesh',
-      // 'SimpleTownLite/models/hotdog_truck_seperate',
-      // 'SimpleTownLite/models/pizza_car_seperate',
-      // 'SimpleTownLite/models/pizza_shop',
-      // 'SimpleTownLite/models/road_square_mesh',
-      // 'SimpleTownLite/models/road_straight_clear_mesh',
-      // 'SimpleTownLite/models/road_straight_mesh',
-      // 'SimpleTownLite/models/store_small_mesh',
-      // 'Ganfaul',
-      // 'ElvenRuins'
-      // 'Miniscene',
-      'FantasyDungeon'
+      'Miniscene/model.gltf'
     ];
 
     Promise.all(loadTasks).then(
       () => {
         urls.forEach((url) => {
-          ResoucePipeline.loadAsync(`${url}/model.gltf`).then(
+          ResoucePipeline.loadAsync(`${url}`).then(
             (asset) => {
               this._scenes.push(asset);
               console.log(asset);

@@ -4,11 +4,11 @@ class ShaderManager {
     this._shaders = {};
   }
 
-  get(id){
+  get(id) {
     return this._shaders[id];
   }
 
-  add(shader){
+  add(shader) {
     let id = shader.id;
     this._shaders[id] = shader;
   }

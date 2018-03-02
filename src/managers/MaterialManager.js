@@ -4,11 +4,11 @@ class MaterialManager {
     this._materials = {};
   }
 
-  get(id){
+  get(id) {
     return this._materials[id];
   }
 
-  add(material){
+  add(material) {
     let id = material.id;
     this._materials[id] = material;
   }

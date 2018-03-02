@@ -15,7 +15,8 @@
     "es6": true
   },
   "globals": {
-    "gl": true
+    "gl": true,
+    "ext": true
   },
   "plugins": [
     "private-props",

@@ -3,9 +3,12 @@
 precision highp float;
 precision highp int;
 
+uniform vec4 uBaseColorFactor;
+
 layout(location = FRAG_COLOR_LOCATION) out vec4 color;
+
 
 void main()
 {
-    color = vec4(1.0, 1.0, 1.0, 1.0);
+    color = uBaseColorFactor;
 }

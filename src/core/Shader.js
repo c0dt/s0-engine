@@ -1,6 +1,6 @@
 import S0 from '../S0';
-// import vsPBRMaster from '../shaders/forward/unlit.vs.glsl';
-// import fsPBRMaster from '../shaders/forward/unlit.fs.glsl';
+import vsLegacyMaster from '../shaders/legacy/color.vs.glsl';
+import fsLegacyMaster from '../shaders/legacy/color.fs.glsl';
 
 import vsForwardPBRMaster from '../shaders/forward/pbr.vs.glsl';
 import fsForwardPBRMaster from '../shaders/forward/pbr.fs.glsl';
@@ -30,11 +30,13 @@ export const ShaderManager = {
   createShader(type, flags) {
     if (type === 'PBR') {
       let shader;
-      if (S0.renderType === 'deferred') {
-        shader = new Shader(vsDeferredPBRMaster, fsDeferredPBRMaster);
-      } else if (S0.renderType === 'forward') {
-        shader = new Shader(vsForwardPBRMaster, fsForwardPBRMaster);
-      }
+      // if (S0.renderType === 'deferred') {
+      //   shader = new Shader(vsDeferredPBRMaster, fsDeferredPBRMaster);
+      // } else if (S0.renderType === 'forward') {
+      //   shader = new Shader(vsForwardPBRMaster, fsForwardPBRMaster);
+      // }
+
+      shader = new Shader(vsLegacyMaster, fsLegacyMaster);
       return shader.compile(flags);
     }
   },
@@ -58,7 +60,7 @@ export default class Shader {
   constructor(vsCode, fsCode, flags) {
     this._vsCode = vsCode;
     this._fsCode = fsCode;
-    this._shaderVersionLine = '#version 300 es\n';
+    this._shaderVersionLine = S0.isWebGL2 ? '#version 300 es\n' : '';
     this._id = ShaderManager._shaderCounter++;
   }
 
