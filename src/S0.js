@@ -56,15 +56,17 @@ class S0 {
 
     Input.initWith(document);
 
-    // this.renderType = 'deferred';
-    // this.renderType = 'forward';
-
-    // if (this.renderType === 'deferred') {
-    //   this.renderer = new DeferredRenderer(canvas.width, canvas.height);
-    // } else if (this.renderType === 'forward') {
-    //   this.renderer = new ForwardRenderer(canvas.width, canvas.height);
-    // }
-    this.renderer = new LegacyRenderer(canvas.width, canvas.height);
+    if (this.isWebGL2) {
+          // this.renderType = 'deferred';
+      this.renderType = 'forward';
+      if (this.renderType === 'deferred') {
+        this.renderer = new DeferredRenderer(canvas.width, canvas.height);
+      } else if (this.renderType === 'forward') {
+        this.renderer = new ForwardRenderer(canvas.width, canvas.height);
+      }
+    } else {
+      this.renderer = new LegacyRenderer(canvas.width, canvas.height);
+    }
     
     this.onWindowResize();
     window.addEventListener('resize', this.onWindowResize.bind(this), false);

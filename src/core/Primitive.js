@@ -36,6 +36,7 @@ export default class Primitive {
   }
 
   prepare() {
+    let shader = this._material.shader;
     this._vao = S0.isWebGL2 ? gl.createVertexArray() : ext.createVertexArrayOES();
     S0.isWebGL2 ? gl.bindVertexArray(this._vao) : ext.bindVertexArrayOES(this._vao);
     for (let key in this._attributes) {
@@ -43,7 +44,7 @@ export default class Primitive {
         let attribute = this._attributes[key];
         attribute.createBuffer();
         attribute.bindData();
-        let location = this._getLocationFromKey(key);
+        let location = shader.getAttributeLocation(key);
         if (location !== undefined) {
           attribute.prepareVertexAttrib(location);
         }
@@ -65,19 +66,24 @@ export default class Primitive {
   
   //@TODO 
   draw(context) {
-    if (!this._vao) {
+    context.useMaterial(this._material);
+
+    if (!this._vao && this._material.shader) {
       this.prepare();
       return;
     }
-    if (context.context.node.skin) {
-      this._material.skinUniformBlockID = context.context.node.skin.uniformBlockID;
+
+    if (this._vao && this._material.shader) {
+      if (context.context.node.skin) {
+        this._material.skinUniformBlockID = context.context.node.skin.uniformBlockID;
+      }
+      context.bindVertexArray(this._vao);
+      if (this._indices !== null) {
+        context.drawElements(this._mode, this._indices._count, this._indices._componentType, this._indices._byteOffset);
+      } else {
+        context.drawArrays(this._mode, this._drawArraysOffset, this._drawArraysCount);
+      }
     }
-    context.useMaterial(this._material);
-    context.bindVertexArray(this._vao);
-    if (this._indices !== null) {
-      context.drawElements(this._mode, this._indices._count, this._indices._componentType, this._indices._byteOffset);
-    } else {
-      context.drawArrays(this._mode, this._drawArraysOffset, this._drawArraysCount);
-    }
+
   }
 }

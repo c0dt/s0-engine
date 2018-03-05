@@ -2,13 +2,6 @@ import Renderer from './Renderer';
 import { /* vec3, vec4, quat,*/ mat4, vec4, vec3 } from 'gl-matrix';
 import Shader from '../core/Shader';
 
-import vsSkyBox from '../shaders/forward/cube-map.vs.glsl';
-import fsSkyBox from '../shaders/forward/cube-map.fs.glsl';
-
-import Cube from '../primitives/Cube';
-
-import IBLManager from '../managers/IBLManager';
-
 import S0 from '../S0';
 
 export default class LegacyRenderer extends Renderer {
@@ -16,23 +9,9 @@ export default class LegacyRenderer extends Renderer {
     super(width, height);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
-    // this.defaultSampler = gl.createSampler();
-    // gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
-    // gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    // gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_S, gl.REPEAT);
-    // gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_T, gl.REPEAT);
-    // gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_WRAP_R, gl.REPEAT);
-    // gl.samplerParameterf(this.defaultSampler, gl.TEXTURE_MIN_LOD, -1000.0);
-    // gl.samplerParameterf(this.defaultSampler, gl.TEXTURE_MAX_LOD, 1000.0);
-    // gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_MODE, gl.NONE);
-    // gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
     this._items = [];
 
     this._skinnedNodes = [];
-
-    this._cube = new Cube();
-    this._shaderSkybox = new Shader(vsSkyBox, fsSkyBox);
-    this._shaderSkybox.compile();
   }
 
   activeAndBindTexture(textureInfo) {
@@ -54,19 +33,12 @@ export default class LegacyRenderer extends Renderer {
     } else {
       gl.bindTexture(gl.TEXTURE_2D, texture.texture);
     }
-    let sampler;
-    if (texture.sampler) {
-      sampler = texture.sampler.sampler;
-    } else {
-      sampler = this.defaultSampler;
-    }
-    //gl.bindSampler(textureInfo.index, sampler);
   }
 
   render(scenes, camera) {
-    gl.clearColor(0.8, 0.8, 0.8, 1.0);
-    
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clear(gl.COLOR_BUFFER_BIT | 
+             gl.DEPTH_BUFFER_BIT);
     gl.enable(gl.CULL_FACE);
 
     scenes.forEach((scene) => {
@@ -108,22 +80,6 @@ export default class LegacyRenderer extends Renderer {
   
       this._items = [];
     });
-
-    if (scenes.length && IBLManager.isReady) {
-      let MVP = mat4.create();
-      mat4.copy(MVP, camera.view);
-      MVP[12] = 0.0;
-      MVP[13] = 0.0;
-      MVP[14] = 0.0;
-      MVP[15] = 1.0;
-      mat4.mul(MVP, camera.projection, MVP);
-      this._shaderSkybox.use();
-      this._shaderSkybox.setMat4('uMVP', MVP);
-      this._shaderSkybox.setInt('u_environment', 0);
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
-      this._cube.draw();
-    }
   }
 
   //
@@ -185,6 +141,12 @@ export default class LegacyRenderer extends Renderer {
     gl.drawElements(mode, indicesLength, indicesComponentType, indicesOffset);
   }
 
+  /**
+   * Represents a book
+   * @param {string} mode - The title of the book.
+   * @param {string} drawArraysOffset - The author of the book.
+   * @param {Shader} drawArraysCount - The author of the book.
+   */
   drawArrays(mode, drawArraysOffset, drawArraysCount) {
     gl.drawArrays(mode, drawArraysOffset, drawArraysCount);
   }

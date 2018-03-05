@@ -46,13 +46,15 @@ export default class Accessor {
   }
 
   prepareVertexAttrib(location) {
-    gl.vertexAttribPointer(location,
+    if (location >= 0) {
+      gl.vertexAttribPointer(location,
         this._size,
         this._componentType,
         this._normalized,
         this._byteStride,
         this._byteOffset);
-    gl.enableVertexAttribArray(location);
+      gl.enableVertexAttribArray(location); 
+    }
   }
 
   get bufferView() {

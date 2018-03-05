@@ -8,6 +8,22 @@ import fsForwardPBRMaster from '../shaders/forward/pbr.fs.glsl';
 import vsDeferredPBRMaster from '../shaders/deferred/pbr.vs.glsl';
 import fsDeferredPBRMaster from '../shaders/deferred/pbr.fs.glsl';
 
+// #define POSITION_LOCATION 0
+// #define NORMAL_LOCATION 1
+// #define TEXCOORD_0_LOCATION 2
+// #define JOINTS_0_LOCATION 3
+// #define WEIGHTS_0_LOCATION 4
+// #define JOINTS_1_LOCATION 5
+// #define WEIGHTS_1_LOCATION 6
+// #define TANGENT_LOCATION 7
+const AttributePositionMapping = {
+  POSITION: 0,
+  NORMAL: 1,
+  TEXCOORD_0: 2,
+  JOINTS_0: 3,
+  WEIGHTS_0: 4
+};
+
 export const ShaderManager = {
   _shaderCounter: 0,
   bitMasks: {
@@ -30,13 +46,15 @@ export const ShaderManager = {
   createShader(type, flags) {
     if (type === 'PBR') {
       let shader;
-      // if (S0.renderType === 'deferred') {
-      //   shader = new Shader(vsDeferredPBRMaster, fsDeferredPBRMaster);
-      // } else if (S0.renderType === 'forward') {
-      //   shader = new Shader(vsForwardPBRMaster, fsForwardPBRMaster);
-      // }
-
-      shader = new Shader(vsLegacyMaster, fsLegacyMaster);
+      if (S0.isWebGL) {
+        shader = new Shader(vsLegacyMaster, fsLegacyMaster);
+      } else {
+        if (S0.renderType === 'deferred') {
+          shader = new Shader(vsDeferredPBRMaster, fsDeferredPBRMaster);
+        } else if (S0.renderType === 'forward') {
+          shader = new Shader(vsForwardPBRMaster, fsForwardPBRMaster);
+        }
+      }
       return shader.compile(flags);
     }
   },
@@ -120,7 +138,7 @@ export default class Shader {
   hasEmissiveMap() {
     return this.flags & ShaderManager.bitMasks.HAS_EMISSIVEMAP;
   }
-
+  
   use() {
     gl.useProgram(this._program);
   }
@@ -154,6 +172,26 @@ export default class Shader {
     if (this.hasEmissiveMap()) {
       fsDefine += '#define HAS_EMISSIVEMAP\n';
     }
+    //pre
+
+    this._attributes = [];
+    this._uniforms = [];
+    [this._vsCode, this._fsCode].forEach((src) => {
+      src.
+        replace(/\/\*[\s\S]*?\*\//g, '').
+        replace(/\/\/[^\n]*/g, '').
+        split(';').
+        forEach((line) => {
+          let m = line.match(/^\s*(uniform|attribute)\s+/);
+          if (m) {
+            let name = line.match(/(\w+)\s*$/)[1];
+            switch (m[1]) {
+              case 'attribute': this._attributes.push({ name: name }); break;
+              case 'uniform': this._uniforms.push({ name: name }); break;
+            }
+          }
+        });
+    });
     
     // concat
     let vertexShaderSource = 
@@ -168,6 +206,20 @@ export default class Shader {
 
     // compile
     this._program = this._createProgram(gl, vertexShaderSource, fragmentShaderSource);
+
+    //post
+    this._attributeMap = {};
+    this._attributes.forEach((attribute) => {
+      attribute.location = gl.getAttribLocation(this._program, attribute.name);
+      this._attributeMap[attribute.name] = attribute.location;
+    });
+
+    this._uniformMap = {};
+    this._uniforms.forEach((uniform) => {
+      uniform.location = gl.getUniformLocation(this._program, uniform.name);
+      this._uniformMap[uniform.name] = uniform.location;
+    });
+    
     this._uniformLocations = {};
     this._uniformBlockIndices = {};
 
@@ -215,6 +267,18 @@ export default class Shader {
     gl.useProgram(null);
 
     return this;
+  }
+
+  getUniformLocation(name) {
+    return this._uniformMap[name];
+  }
+
+  getAttributeLocation(name) {
+    if (S0.isWebGL2) {
+      return AttributePositionMapping[name];
+    } else {
+      return this._attributeMap[name];
+    }
   }
 
   get uniformLocations() {
