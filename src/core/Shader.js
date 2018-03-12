@@ -178,8 +178,8 @@ export default class Shader {
     this._uniforms = [];
     [this._vsCode, this._fsCode].forEach((src) => {
       src.
-        replace(/\/\*[\s\S]*?\*\//g, '').
-        replace(/\/\/[^\n]*/g, '').
+        replace(/\/\*[\s\S]*?\*\//g, '').   // remove block comment
+        replace(/\/\/[^\n]*/g, ''). // remove comment
         split(';').
         forEach((line) => {
           let m = line.match(/^\s*(uniform|attribute)\s+/);
@@ -220,6 +220,10 @@ export default class Shader {
       this._uniformMap[uniform.name] = uniform.location;
     });
     
+    let attributesCount = gl.getProgramParameter(this._program, gl.ACTIVE_ATTRIBUTES);
+    let uniformsCount = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
+    let uniformBlocksCount = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORM_BLOCKS);
+
     this._uniformLocations = {};
     this._uniformBlockIndices = {};
 

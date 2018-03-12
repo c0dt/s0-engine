@@ -2,8 +2,6 @@ let path = require('path');
 let webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
-
 let definePlugin = new webpack.DefinePlugin({
   __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true'))
 });
@@ -15,32 +13,38 @@ module.exports = {
     ],
     vendor: ['gl-matrix']
   },
-  devtool: 'source-map',
   output: {
     pathinfo: true,
-    path: path.resolve(__dirname, 'build/debug'),
+    path: path.resolve(__dirname, 'build/release/'),
     filename: 'js/[name].js'
   },
   plugins: [
     definePlugin,
-    new webpack.optimize.CommonsChunkPlugin({
-      name: "vendor",
-      minChunks: Infinity
-    }),
-    new webpack.HotModuleReplacementPlugin(),
     new CopyWebpackPlugin([
-      { context: 'resources/', from: '**/*', to: 'debug' },
+      { context: 'resources/', from: '**/*', to: 'release' },
     ]),
     new HtmlWebpackPlugin({
       template: './index.html',
       inject: true,
       filename: 'index.html'
     }),
-    new BrowserSyncPlugin({
-      host: 'localhost',
-      port: 3000,
-      server: { baseDir: [path.resolve(__dirname, 'build/debug')] }
-    })
+    new webpack.optimize.CommonsChunkPlugin({
+      name: "vendor",
+      minChunks: Infinity
+    }),
+    new webpack.optimize.UglifyJsPlugin({
+      output: {
+        comments(node, comment) {
+          let text = comment.value;
+          let type = comment.type;
+          if (type === "comment2") {
+                // multiline comment
+            return /@copyright/i.test(text);
+          }
+        }
+      }
+    }),
+    new webpack.optimize.AggressiveMergingPlugin()
   ],
   module: {
     loaders: [
@@ -68,6 +72,5 @@ module.exports = {
     // alias: {
     //   'pixi': pixi
     // }
-  },
-  watch: true
+  }
 };
