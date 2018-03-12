@@ -21,7 +21,7 @@ module.exports = {
   plugins: [
     definePlugin,
     new CopyWebpackPlugin([
-      { context: 'resources/', from: '**/*', to: 'release' },
+      { context: 'resources/', from: '**/*', to: './' },
     ]),
     new HtmlWebpackPlugin({
       template: './index.html',

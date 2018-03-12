@@ -29,7 +29,7 @@ module.exports = {
     }),
     new webpack.HotModuleReplacementPlugin(),
     new CopyWebpackPlugin([
-      { context: 'resources/', from: '**/*', to: 'debug' },
+      { context: 'resources/', from: '**/*', to: './' },
     ]),
     new HtmlWebpackPlugin({
       template: './index.html',
