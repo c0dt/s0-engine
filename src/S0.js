@@ -112,7 +112,6 @@ class S0 {
     let urls = [
       'Miniscene/model.gltf'
     ];
-
     Promise.all(loadTasks).then(
       () => {
         urls.forEach((url) => {
@@ -128,7 +127,6 @@ class S0 {
     ).catch((e) => {
       console.error(e);
     });
-
     window.requestAnimationFrame(this.animate.bind(this));
   }
 

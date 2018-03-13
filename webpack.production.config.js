@@ -3,7 +3,7 @@ let webpack = require('webpack');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 let definePlugin = new webpack.DefinePlugin({
-  __DEV__: JSON.stringify(JSON.parse(process.env.BUILD_DEV || 'true'))
+  '__DEBUG__': false
 });
 
 module.exports = {
@@ -33,6 +33,12 @@ module.exports = {
       minChunks: Infinity
     }),
     new webpack.optimize.UglifyJsPlugin({
+      uglifyOptions: {
+        compress: {
+          drop_console: true,
+        },
+        dead_code: true,
+      },
       output: {
         comments(node, comment) {
           let text = comment.value;
