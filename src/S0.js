@@ -110,7 +110,7 @@ class S0 {
     this.primitives = {};
     this._scenes = [];
     let urls = [
-      'Ganfaul/model.gltf'
+      'hero/hero.gltf'
     ];
     Promise.all(loadTasks).then(
       () => {
