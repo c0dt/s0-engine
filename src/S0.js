@@ -58,7 +58,7 @@ class S0 {
     Input.initWith(document);
 
     if (this.isWebGL2) {
-          // this.renderType = 'deferred';
+      // this.renderType = 'deferred';
       this.renderType = 'forward';
       if (this.renderType === 'deferred') {
         this.renderer = new DeferredRenderer(canvas.width, canvas.height);
@@ -111,7 +111,7 @@ class S0 {
     this.primitives = {};
     this._scenes = [];
     let urls = [
-      'Miniscene/model.gltf'
+      'hero/hero.gltf'
     ];
     Promise.all(loadTasks).then(
       () => {

@@ -75,6 +75,7 @@ export default class Material {
 
   set skinUniformBlockID(value) {
     this._flag |= ShaderManager.bitMasks.HAS_SKIN;
+    delete this._shader;
     this._uniformBlockID = value;
   }
 
