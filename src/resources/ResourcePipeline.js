@@ -3,6 +3,7 @@ import ResourceItem from './ResourceItem';
 import GLTFLoader from './loaders/GLTFLoader';
 import GLTFBufferLoader from './loaders/GLTFBufferLoader';
 import ImageLoader from './loaders/ImageLoader';
+import AudioLoader from './loaders/AudioLoader';
 
 class ResourcePipeline {
 
@@ -13,6 +14,7 @@ class ResourcePipeline {
       "jpg": ImageLoader,
       "png": ImageLoader,
       "gif": ImageLoader,
+      "mp3": AudioLoader
     };  
   }
 

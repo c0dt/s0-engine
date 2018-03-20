@@ -15,6 +15,7 @@ import Input from './managers/Input';
 
 import ComponentManager from './managers/ComponentManager';
 import LegacyRenderer from './renderers/LegacyRenderer';
+import AudioManager from './managers/AudioManager';
 
 class S0 {
   constructor() {
@@ -128,6 +129,10 @@ class S0 {
       console.error(e);
     });
     window.requestAnimationFrame(this.animate.bind(this));
+    ResoucePipeline.loadAsync('3-31 星と僕らと.mp3').then((buffer) => {
+      console.log(buffer);
+      AudioManager.testPlaySound(buffer);
+    });
   }
 
   onWindowResize(event) {
