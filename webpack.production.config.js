@@ -1,68 +1,54 @@
 let path = require('path');
 let webpack = require('webpack');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 let definePlugin = new webpack.DefinePlugin({
   '__DEBUG__': false
 });
 
 module.exports = {
   entry: {
-    app: [
-      path.resolve(__dirname, 'src/main')
-    ],
-    vendor: ['gl-matrix']
+    "s0-engine": [
+      path.resolve(__dirname, 'src/S0')
+    ]
   },
   output: {
     pathinfo: true,
-    path: path.resolve(__dirname, 'build/release/'),
-    filename: 'js/[name].js'
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name]-min.js'
   },
-  plugins: [
-    definePlugin,
-    new CopyWebpackPlugin([
-      { context: 'resources/', from: '**/*', to: './' },
-    ]),
-    new HtmlWebpackPlugin({
-      template: './index.html',
-      inject: true,
-      filename: 'index.html'
-    }),
-    new webpack.optimize.CommonsChunkPlugin({
-      name: "vendor",
-      minChunks: Infinity
-    }),
-    new webpack.optimize.UglifyJsPlugin({
-      uglifyOptions: {
-        compress: {
-          drop_console: true,
-        },
-        dead_code: true,
-      },
-      output: {
-        comments(node, comment) {
-          let text = comment.value;
-          let type = comment.type;
-          if (type === "comment2") {
+  optimization: {
+    minimizer: [
+      new UglifyJsPlugin({
+        uglifyOptions: {
+          compress: {
+            drop_console: true,
+          },
+          dead_code: true,
+          output: {
+            comments(node, comment) {
+              let text = comment.value;
+              let type = comment.type;
+              if (type === "comment2") {
                 // multiline comment
-            return /@copyright/i.test(text);
+                return /@copyright/i.test(text);
+              }
+            }
           }
         }
-      }
-    }),
-    new webpack.optimize.AggressiveMergingPlugin()
+      })
+    ]
+  },
+  plugins: [
+    definePlugin
   ],
   module: {
-    loaders: [
+    rules: [
       { 
         test: /\.js$/, 
         use: {
-          loader: 'babel-loader',
-          options: {
-            "presets": [["es2015", { modules: false }]],
-          }
+          loader: 'babel-loader'
         },
-        exclude: /node_modules\/lodash/
+        exclude: /node_modules\//
       },
       { test: /\.(glsl|frag|vert)$/, loader: 'raw-loader', include: [ path.join(__dirname, 'src') ], exclude: /node_modules/ },
       { test: /\.(glsl|frag|vert)$/, loader: 'glslify-loader', include: [ path.join(__dirname, 'src') ], exclude: /node_modules/ },
@@ -73,10 +59,5 @@ module.exports = {
     fs: 'empty',
     net: 'empty',
     tls: 'empty'
-  },
-  resolve: {
-    // alias: {
-    //   'pixi': pixi
-    // }
   }
 };

@@ -1,8 +1,5 @@
 let path = require('path');
 let webpack = require('webpack');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const BrowserSyncPlugin = require('browser-sync-webpack-plugin');
 
 let definePlugin = new webpack.DefinePlugin({
   '__DEBUG__': true
@@ -10,49 +7,28 @@ let definePlugin = new webpack.DefinePlugin({
 
 module.exports = {
   entry: {
-    app: [
-      path.resolve(__dirname, 'src/main')
-    ],
-    vendor: ['gl-matrix']
+    "s0-engine": [
+      path.resolve(__dirname, 'src/index')
+    ]
   },
   devtool: 'source-map',
   output: {
     pathinfo: true,
-    path: path.resolve(__dirname, 'build/debug'),
-    filename: 'js/[name].js'
+    path: path.resolve(__dirname, 'dist'),
+    filename: '[name].js'
   },
   plugins: [
     definePlugin,
-    new webpack.optimize.CommonsChunkPlugin({
-      name: "vendor",
-      minChunks: Infinity
-    }),
-    new webpack.HotModuleReplacementPlugin(),
-    new CopyWebpackPlugin([
-      { context: 'resources/', from: '**/*', to: './' },
-    ]),
-    new HtmlWebpackPlugin({
-      template: './index.html',
-      inject: true,
-      filename: 'index.html'
-    }),
-    new BrowserSyncPlugin({
-      host: 'localhost',
-      port: 3000,
-      server: { baseDir: [path.resolve(__dirname, 'build/debug')] }
-    })
+    new webpack.HotModuleReplacementPlugin()
   ],
   module: {
-    loaders: [
+    rules: [
       { 
         test: /\.js$/, 
         use: {
-          loader: 'babel-loader',
-          options: {
-            "presets": [["es2015", { modules: false }]],
-          }
+          loader: 'babel-loader'
         },
-        exclude: /node_modules\/lodash/
+        exclude: /node_modules\//
       },
       { test: /\.(glsl|frag|vert)$/, loader: 'raw-loader', include: [ path.join(__dirname, 'src') ], exclude: /node_modules/ },
       { test: /\.(glsl|frag|vert)$/, loader: 'glslify-loader', include: [ path.join(__dirname, 'src') ], exclude: /node_modules/ },
@@ -63,11 +39,6 @@ module.exports = {
     fs: 'empty',
     net: 'empty',
     tls: 'empty'
-  },
-  resolve: {
-    // alias: {
-    //   'pixi': pixi
-    // }
   },
   watch: true
 };

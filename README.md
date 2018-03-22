@@ -1,16 +1,19 @@
-# threejs-boilerplate
+# s0-engine
 
 ### setup
 
  ```bash
- npm install
+ yarn
  ```
 
-### running
+### development
 
  ```bash
- gulp
- ```# webgl-S0
+ npm run dev
+ ```
 
+ ### build
 
-https://github.com/tiansijie/Tile_Based_WebGL_DeferredShader/blob/master/src/deferred.js
+ ```bash
+ npm run build
+ ```

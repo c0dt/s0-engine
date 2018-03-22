@@ -19,7 +19,8 @@ import AudioManager from './managers/AudioManager';
 
 class S0 {
   constructor() {
-        
+    this.primitives = {};
+    this._scenes = []; 
   }
 
   initWith(canvas) {
@@ -82,57 +83,7 @@ class S0 {
       pitch: 0
     });
     // this.axis = new Axis;
-    let loadTasks = [];
-    let task = ResoucePipeline.loadAsync('IBL/default/env/cubemap.json', { loaderClass: CubemapLoader })
-      .then((cubemap) => {
-        IBLManager.specularEnvSampler = cubemap.texture;
-        return Promise.resolve();
-      });
-    loadTasks.push(task);
-    task = ResoucePipeline.loadAsync('IBL/default/diffuse/cubemap.json', { loaderClass: CubemapLoader })
-      .then((cubemap) => {
-        IBLManager.diffuseEnvSampler = cubemap.texture;
-        return Promise.resolve();
-      });
-    loadTasks.push(task);
-    task = ResoucePipeline.loadAsync('IBL/brdfLUT.png', { name: 'BRDF_LUT', loaderClass: TextureLoader })
-      .then((texture) => {
-        IBLManager.brdfLUT = texture.texture;
-        return Promise.resolve();
-      });
-    loadTasks.push(task);
-    task = ResoucePipeline.loadAsync('lut/clut_default_a.png', { name: 'clut_default_a', loaderClass: TextureLoader })
-    .then((texture) => {
-      texture.setTextureMode(0);
-      LUTManager.lutTexture = texture.texture;
-      return Promise.resolve();
-    });
-    loadTasks.push(task);
-    this.primitives = {};
-    this._scenes = [];
-    let urls = [
-      'hero/hero.gltf'
-    ];
-    Promise.all(loadTasks).then(
-      () => {
-        urls.forEach((url) => {
-          ResoucePipeline.loadAsync(`${url}`).then(
-            (asset) => {
-              this._scenes.push(asset);
-              console.log(asset);
-              return asset;
-            }
-          );
-        });
-      }
-    ).catch((e) => {
-      console.error(e);
-    });
     window.requestAnimationFrame(this.animate.bind(this));
-    ResoucePipeline.loadAsync('3-31 星と僕らと.mp3').then((buffer) => {
-      console.log(buffer);
-      AudioManager.testPlaySound(buffer);
-    });
   }
 
   onWindowResize(event) {
