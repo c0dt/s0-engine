@@ -2,7 +2,13 @@ import { vec3, vec4, quat, mat4 } from 'gl-matrix';
 import ObjectFactory from './ObjectFactory';
 import ComponentManager from '../managers/ComponentManager';
 
+
 export default class Node {
+  /**
+   * 
+   * @param {Object} { name, translation, rotation, scale, skin, mesh, children, extras } 
+   * @param {String} id 
+   */
   constructor({ name, translation, rotation, scale, skin, mesh, children, extras } = {}, id) {
     this._id = id;
     this._components = [];

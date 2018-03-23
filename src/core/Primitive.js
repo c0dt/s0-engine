@@ -1,20 +1,5 @@
 import S0 from '../S0';
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-// #define POSITION_LOCATION 0
-// #define NORMAL_LOCATION 1
-// #define TEXCOORD_0_LOCATION 2
-// #define JOINTS_0_LOCATION 3
-// #define WEIGHTS_0_LOCATION 4
-// #define JOINTS_1_LOCATION 5
-// #define WEIGHTS_1_LOCATION 6
-// #define TANGENT_LOCATION 7
-const AttributePositionMapping = {
-  POSITION: 0,
-  NORMAL: 1,
-  TEXCOORD_0: 2,
-  JOINTS_0: 3,
-  WEIGHTS_0: 4
-};
 
 export default class Primitive {
   constructor({ attributes, indices, material, mode }, accessors, materials) {
@@ -31,10 +16,6 @@ export default class Primitive {
     }
   }
 
-  _getLocationFromKey(key) {
-    return AttributePositionMapping[key];
-  }
-
   prepare() {
     let shader = this._material.shader;
     this._vao = S0.isWebGL2 ? gl.createVertexArray() : ext.createVertexArrayOES();
@@ -44,7 +25,7 @@ export default class Primitive {
         let attribute = this._attributes[key];
         attribute.createBuffer();
         attribute.bindData();
-        let location = shader.getAttributeLocation(key);
+        let location = shader.attributeLocations[key];
         if (location !== undefined) {
           attribute.prepareVertexAttrib(location);
         }
@@ -66,6 +47,9 @@ export default class Primitive {
   
   //@TODO 
   draw(context) {
+    if (context.context.node.skin) {
+      this._material.skinUniformBlockID = context.context.node.skin.uniformBlockID;
+    }
     context.useMaterial(this._material);
 
     if (!this._vao && this._material.shader) {
@@ -74,9 +58,6 @@ export default class Primitive {
     }
 
     if (this._vao && this._material.shader) {
-      if (context.context.node.skin) {
-        this._material.skinUniformBlockID = context.context.node.skin.uniformBlockID;
-      }
       context.bindVertexArray(this._vao);
       if (this._indices !== null) {
         context.drawElements(this._mode, this._indices._count, this._indices._componentType, this._indices._byteOffset);

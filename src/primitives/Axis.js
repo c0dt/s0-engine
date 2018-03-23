@@ -1,6 +1,7 @@
 import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-import vsBBOX from '../shaders/axis.vs.glsl';
-import fsBBOX from '../shaders/axis.fs.glsl';
+
+import vsBBOX from '../shaders/forward/axis.vs.glsl';
+import fsBBOX from '../shaders/forward/axis.fs.glsl';
 
 export default class Axis {
   constructor() {

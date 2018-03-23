@@ -10,7 +10,7 @@ export default class Material {
     emissiveTexture, //{index,texCoord}
     emissiveFactor, // [r,g,b]
     pbrMetallicRoughness // {baseColorTexture, baseColorFactor, metallicRoughnessTexture, metallicFactor, roughnessFactor}
-    }, textures) {
+  }, textures) {
     this._name = name;
     this._alphaMode = alphaMode;
     this._pbrMetallicRoughness = pbrMetallicRoughness;

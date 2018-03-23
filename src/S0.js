@@ -3,24 +3,21 @@ import { glm } from './glm';
 
 import ForwardRenderer from './renderers/ForwardRenderer';
 import DeferredRenderer from './renderers/DeferredRenderer';
-import ResoucePipeline from './resources/ResourcePipeline';
 
 import Camera from './core/Camera';
-import CubemapLoader from './resources/loaders/CubemapLoader';
-import TextureLoader from './resources/loaders/TextureLoader';
-
-import IBLManager from './managers/IBLManager';
-import LUTManager from './managers/LUTManager';
 import Input from './managers/Input';
 
 import ComponentManager from './managers/ComponentManager';
 import LegacyRenderer from './renderers/LegacyRenderer';
-import AudioManager from './managers/AudioManager';
 
 class S0 {
   constructor() {
     this.primitives = {};
     this._scenes = []; 
+  }
+
+  addScene(scene) {
+    this._scenes.push(scene);
   }
 
   initWith(canvas) {
@@ -49,11 +46,13 @@ class S0 {
       } else {
         console.warn('WebGL is not available');
       }
+    } else {
+      if (!gl.getExtension("EXT_color_buffer_float")) {
+        console.warn("FLOAT color buffer not available");
+        console.warn("This example requires EXT_color_buffer_float which is unavailable on this system.");
+      }
     }
-    if (!gl.getExtension("EXT_color_buffer_float")) {
-      console.warn("FLOAT color buffer not available");
-      console.warn("This example requires EXT_color_buffer_float which is unavailable on this system.");
-    }
+
     window.gl = gl;
 
     Input.initWith(document);
@@ -82,7 +81,7 @@ class S0 {
       yaw: -90.0,
       pitch: 0
     });
-    // this.axis = new Axis;
+    
     window.requestAnimationFrame(this.animate.bind(this));
   }
 

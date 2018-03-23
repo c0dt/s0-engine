@@ -53,18 +53,18 @@ export default class LegacyRenderer extends Renderer {
       this._tmpMat4 = mat4.create();
       this._inverseTransformMat4 = mat4.create();
       this._skinnedNodes.forEach((node) => {
-        let skin = node.skin;
-        let joints = skin.joints;
-        mat4.invert(this._inverseTransformMat4, node.worldMatrix);
-        let jointsLength = skin.joints.length;
-        for (let i = 0; i < jointsLength; i++) {
-          let jointNode = joints[i].node;
-          mat4.mul(this._tmpMat4, jointNode.worldMatrix, skin.inverseBindMatrices[i]);
-          mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
-          skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
-        }
-        gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
-        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
+        // let skin = node.skin;
+        // let joints = skin.joints;
+        // mat4.invert(this._inverseTransformMat4, node.worldMatrix);
+        // let jointsLength = skin.joints.length;
+        // for (let i = 0; i < jointsLength; i++) {
+        //   let jointNode = joints[i].node;
+        //   mat4.mul(this._tmpMat4, jointNode.worldMatrix, skin.inverseBindMatrices[i]);
+        //   mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
+        //   skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
+        // }
+        // gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
+        // gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
       });
       this._skinnedNodes = [];
       this.projection = camera.projection;
@@ -132,7 +132,6 @@ export default class LegacyRenderer extends Renderer {
 
   //@TODO 
   bindVertexArray(id) {
-    // gl.bindVertexArray(id);
     S0.isWebGL2 ? gl.bindVertexArray(id) : ext.bindVertexArrayOES(id);
   }
   

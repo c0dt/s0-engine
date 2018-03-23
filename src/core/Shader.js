@@ -8,22 +8,6 @@ import fsForwardPBRMaster from '../shaders/forward/pbr.fs.glsl';
 import vsDeferredPBRMaster from '../shaders/deferred/pbr.vs.glsl';
 import fsDeferredPBRMaster from '../shaders/deferred/pbr.fs.glsl';
 
-// #define POSITION_LOCATION 0
-// #define NORMAL_LOCATION 1
-// #define TEXCOORD_0_LOCATION 2
-// #define JOINTS_0_LOCATION 3
-// #define WEIGHTS_0_LOCATION 4
-// #define JOINTS_1_LOCATION 5
-// #define WEIGHTS_1_LOCATION 6
-// #define TANGENT_LOCATION 7
-const AttributePositionMapping = {
-  POSITION: 0,
-  NORMAL: 1,
-  TEXCOORD_0: 2,
-  JOINTS_0: 3,
-  WEIGHTS_0: 4
-};
-
 export const ShaderManager = {
   _shaderCounter: 0,
   bitMasks: {
@@ -80,6 +64,10 @@ export default class Shader {
     this._fsCode = fsCode;
     this._shaderVersionLine = S0.isWebGL2 ? '#version 300 es\n' : '';
     this._id = ShaderManager._shaderCounter++;
+
+    this._attributeMap = {};
+    this._uniformMap = {};
+    this._uniformBlockIndices = {};
   }
 
   _createShader(gl, source, type) {
@@ -101,15 +89,16 @@ export default class Shader {
 
     let log = gl.getProgramInfoLog(program);
     if (log) {
-      console.log(log);
+      console.warn(log);
     }
     log = gl.getShaderInfoLog(vshader);
     if (log) {
-      console.log(log);
+      console.warn(log);
     }
+    
     log = gl.getShaderInfoLog(fshader);
     if (log) {
-      console.log(log);
+      console.warn(log);
     }
     return program;
   }
@@ -143,20 +132,17 @@ export default class Shader {
     gl.useProgram(this._program);
   }
 
-  compile(flags) {
+  _precompile(flags) {
     this.flags = flags;
     let vsDefine = '';
     let fsDefine = '';
-
     // define macros
-
     if (this.hasSkin()) {
       vsDefine += '#define HAS_SKIN\n';
     }
     if (this.hasSkinVec8()) {
       vsDefine += '#define SKIN_VEC8\n';
     }
-
     if (this.hasBaseColorMap()) {
       fsDefine += '#define HAS_BASECOLORMAP\n';
     }
@@ -172,168 +158,119 @@ export default class Shader {
     if (this.hasEmissiveMap()) {
       fsDefine += '#define HAS_EMISSIVEMAP\n';
     }
-    //pre
 
-    this._attributes = [];
-    this._uniforms = [];
-    [this._vsCode, this._fsCode].forEach((src) => {
-      src.
-        replace(/\/\*[\s\S]*?\*\//g, '').   // remove block comment
-        replace(/\/\/[^\n]*/g, ''). // remove comment
-        split(';').
-        forEach((line) => {
-          let m = line.match(/^\s*(uniform|attribute)\s+/);
-          if (m) {
-            let name = line.match(/(\w+)\s*$/)[1];
-            switch (m[1]) {
-              case 'attribute': this._attributes.push({ name: name }); break;
-              case 'uniform': this._uniforms.push({ name: name }); break;
-            }
-          }
-        });
-    });
-    
     // concat
     let vertexShaderSource = 
         this._shaderVersionLine +
         vsDefine +
-        this._vsCode;
+        this._vsCode.replace(/aPosition/ig, 'POSITION')
+          .replace(/aTexCoord/ig, 'TEXCOORD_0')
+          .replace(/aNormal/ig, 'NORMAL')
+          .replace(/aJoint0/ig, 'JOINTS_0')
+          .replace(/aWeight0/ig, 'WEIGHTS_0');
     
     let fragmentShaderSource = 
         this._shaderVersionLine +
         fsDefine +
         this._fsCode;
+    return [vertexShaderSource, fragmentShaderSource];
+  }
 
+  _postcompile() {
+    //post    
+    let attributesCount = gl.getProgramParameter(this._program, gl.ACTIVE_ATTRIBUTES);
+
+    for (let i = 0; i < attributesCount; i++) {
+      const attributeInfo = gl.getActiveAttrib(this._program, i); 
+      console.log('name:', attributeInfo.name, 'type:', attributeInfo.type, 'size:', attributeInfo.size); 
+      this._attributeMap[attributeInfo.name] = gl.getAttribLocation(this._program, attributeInfo.name);
+    }
+
+    let uniformsCount = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
+
+    for (let i = 0; i < uniformsCount; i++) {
+      const uniformInfo = gl.getActiveUniform(this._program, i);
+      console.log('name:', uniformInfo.name, 'type:', uniformInfo.type, 'size:', uniformInfo.size); 
+      this._uniformMap[uniformInfo.name] = gl.getUniformLocation(this._program, uniformInfo.name);
+    }
+
+    if (S0.isWebGL2) {
+      let uniformBlocksCount = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORM_BLOCKS);
+      for (let i = 0; i < uniformBlocksCount; i++) {
+        const blockName = gl.getActiveUniformBlockName(this._program, i);
+        console.log('uniform block name: ', blockName);
+        this._uniformBlockIndices[blockName] = gl.getUniformBlockIndex(this._program, blockName);
+      }
+    }
+
+  }
+
+  compile(flags) {
+    let [vertexShaderSource, fragmentShaderSource] = this._precompile(flags);
     // compile
     this._program = this._createProgram(gl, vertexShaderSource, fragmentShaderSource);
-
-    //post
-    this._attributeMap = {};
-    this._attributes.forEach((attribute) => {
-      attribute.location = gl.getAttribLocation(this._program, attribute.name);
-      this._attributeMap[attribute.name] = attribute.location;
-    });
-
-    this._uniformMap = {};
-    this._uniforms.forEach((uniform) => {
-      uniform.location = gl.getUniformLocation(this._program, uniform.name);
-      this._uniformMap[uniform.name] = uniform.location;
-    });
     
-    let attributesCount = gl.getProgramParameter(this._program, gl.ACTIVE_ATTRIBUTES);
-    let uniformsCount = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORMS);
-    let uniformBlocksCount = gl.getProgramParameter(this._program, gl.ACTIVE_UNIFORM_BLOCKS);
-
-    this._uniformLocations = {};
-    this._uniformBlockIndices = {};
-
-    // uniform block id
-    if (this.hasSkin()) {
-      this._uniformBlockIndices.uJointMatrix = gl.getUniformBlockIndex(this._program, "JointMatrix");
-    }
-
-    this._uniformLocations.MVP = gl.getUniformLocation(this._program, 'uMVP');
-    this._uniformLocations.MVNormal = gl.getUniformLocation(this._program, 'uMVNormal');
-    this._uniformLocations.MV = gl.getUniformLocation(this._program, 'uMV');
-
-    this._uniformLocations.baseColorFactor = gl.getUniformLocation(this._program, 'uBaseColorFactor');
-    this._uniformLocations.metallicFactor = gl.getUniformLocation(this._program, 'uMetallicFactor');
-    this._uniformLocations.roughnessFactor = gl.getUniformLocation(this._program, 'uRoughnessFactor');
-
-    if (this.hasBaseColorMap()) {
-      this._uniformLocations.baseColorTexture = gl.getUniformLocation(this._program, 'uBaseColorTexture');
-    }
-    if (this.hasNormalMap()) {
-      this._uniformLocations.normalTexture = gl.getUniformLocation(this._program, 'uNormalTexture');
-      this._uniformLocations.normalTextureScale = gl.getUniformLocation(this._program, 'uNormalTextureScale');
-    }
-    if (this.hasMetalRoughnessMap()) {
-      this._uniformLocations.metallicRoughnessTexture = gl.getUniformLocation(this._program, 'uMetallicRoughnessTexture');
-    }
-    if (this.hasOcclusionMap()) {
-      this._uniformLocations.occlusionTexture = gl.getUniformLocation(this._program, 'uOcclusionTexture');
-      this._uniformLocations.occlusionStrength = gl.getUniformLocation(this._program, 'uOcclusionStrength');
-    }
-    if (this.hasEmissiveMap()) {
-      this._uniformLocations.emissiveTexture = gl.getUniformLocation(this._program, 'uEmissiveTexture');
-      this._uniformLocations.emissiveFactor = gl.getUniformLocation(this._program, 'uEmissiveFactor');
-    }
-
-    this._uniformLocations.uDiffuseEnvSampler = gl.getUniformLocation(this._program, 'uDiffuseEnvSampler');
-    this._uniformLocations.uSpecularEnvSampler = gl.getUniformLocation(this._program, 'uSpecularEnvSampler');
-    this._uniformLocations.uBrdfLUT = gl.getUniformLocation(this._program, 'uBrdfLUT');
-
+    this._postcompile();
     // set static uniform values in cubemap
     gl.useProgram(this._program);
-    gl.uniform1i(this._uniformLocations.uBrdfLUT, 13);
-    gl.uniform1i(this._uniformLocations.uSpecularEnvSampler, 14);
-    gl.uniform1i(this._uniformLocations.uDiffuseEnvSampler, 15);
+    gl.uniform1i(this.uniformLocations.uBrdfLUT, 13);
+    gl.uniform1i(this.uniformLocations.uSpecularEnvSampler, 14);
+    gl.uniform1i(this.uniformLocations.uDiffuseEnvSampler, 15);
     gl.useProgram(null);
 
     return this;
   }
 
-  getUniformLocation(name) {
-    return this._uniformMap[name];
-  }
-
-  getAttributeLocation(name) {
-    if (S0.isWebGL2) {
-      return AttributePositionMapping[name];
-    } else {
-      return this._attributeMap[name];
-    }
+  get attributeLocations() {
+    return this._attributeMap;
   }
 
   get uniformLocations() {
-    return this._uniformLocations;
+    return this._uniformMap;
   }
 
+  //# helpers
+
   setMat4(type, mat4) {
-    let location = this._uniformLocations[type];
-    if (!location) {
-      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    let location = this._uniformMap[type];
+    if (location) {
+      gl.uniformMatrix4fv(location, false, mat4); 
     }
-    gl.uniformMatrix4fv(location, false, mat4);
   }
 
   setInt(type, value) {
-    let location = this._uniformLocations[type];
-    if (!location) {
-      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    let location = this._uniformMap[type];
+    if (location) {
+      gl.uniform1i(location, value);
     }
-    gl.uniform1i(location, value);
+    
   }
 
   set1f(type, value) {
-    let location = this._uniformLocations[type];
-    if (!location) {
-      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    let location = this._uniformMap[type];
+    if (location) {
+      gl.uniform1f(location, value);
     }
-    gl.uniform1f(location, value);
   }
 
   set4fv(type, value) {
-    let location = this._uniformLocations[type];
-    if (!location) {
-      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    let location = this._uniformMap[type];
+    if (location) {
+      gl.uniform4fv(location, value);
     }
-    gl.uniform4fv(location, value);
   }
 
   set3fv(type, value) {
-    let location = this._uniformLocations[type];
-    if (!location) {
-      location = this._uniformLocations[type] = gl.getUniformLocation(this._program, type);
+    let location = this._uniformMap[type];
+    if (location) {
+      gl.uniform3fv(location, value);
     }
-    gl.uniform3fv(location, value);
   }
 
   setBlockIndex(type, value) {
     let location = this._uniformBlockIndices[type];
-    if (!location) {
-      location = this._uniformBlockIndices[type] = gl.getUniformBlockIndex(this._program, type);
+    if (location) {
+      gl.uniformBlockBinding(this._program, location, value);
     }
-    gl.uniformBlockBinding(this._program, location, value);
   }
 }
