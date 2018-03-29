@@ -87,6 +87,11 @@ class S0 {
 
   onWindowResize(event) {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    window.GameCanvas.width = window.innerWidth;
+    window.GameCanvas.height = window.innerHeight;
+    if(this.projection){
+      mat4.perspective(this.projection, glm.radians(45.0), window.GameCanvas.width / window.GameCanvas.height, 0.1, 100000.0);
+    }
   }
 
   animate(time) {
