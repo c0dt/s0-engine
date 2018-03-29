@@ -12,5 +12,8 @@ export { default as Scene } from './core/Scene';
 export { default as Shader } from './core/Shader';
 export { default as Material } from './core/Material';
 export { default as Node } from './core/Node';
+export { default as Mesh } from './core/Mesh';
+export { default as Accessor } from './core/Accessor';
+export { default as BufferView } from './core/BufferView';
 
 export { default as Axis } from './primitives/Axis';
