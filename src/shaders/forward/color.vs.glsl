@@ -13,5 +13,5 @@ layout(location = TEXCOORD_0_LOCATION) in vec2 aTexcoord0;
 
 void main()
 {
-    gl_Position = uMVP * vec4(position, 1.0);
+    gl_Position = uMVP * vec4(aPosition, 1.0);
 }

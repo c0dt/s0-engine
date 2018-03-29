@@ -5,8 +5,16 @@ export default class Quad {
       -1.0, 1.0, 0.0, 0.0, 1.0,
       -1.0, -1.0, 0.0, 0.0, 0.0,
       1.0, 1.0, 0.0, 1.0, 1.0,
-      1.0, -1.0, 0.0, 1.0, 0.0,
+      1.0, -1.0, 0.0, 1.0, 0.0
     ]);
+  }
+
+
+  prepare() {
+    // S0.isWebGL2 ? gl.bindVertexArray(this.vertexArray) : ext.bindVertexArrayOES(this.vertexArray);
+    // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    // S0.isWebGL2 ? gl.bindVertexArray(null) : ext.bindVertexArrayOES(null);
+
     this.vertexArray = S0.isWebGL2 ? gl.createVertexArray() : ext.createVertexArrayOES();
     this.vertexBuffer = gl.createBuffer();
     S0.isWebGL2 ? gl.bindVertexArray(this.vertexArray) : ext.bindVertexArray(this.vertexArray);
@@ -17,13 +25,12 @@ export default class Quad {
     gl.vertexAttribPointer(1, 2, gl.FLOAT, false, 5 * 4, 3 * 4);
     gl.enableVertexAttribArray(1);
     S0.isWebGL2 ? gl.bindVertexArray(null) : ext.bindVertexArrayOES(null);
-  }
 
-
-  draw() {
-    S0.isWebGL2 ? gl.bindVertexArray(this.vertexArray) : ext.bindVertexArrayOES(this.vertexArray);
-    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    S0.isWebGL2 ? gl.bindVertexArray(null) : ext.bindVertexArrayOES(null);
+    this._vao = this.vertexArray;
+    this._indices = null;
+    this._mode = gl.TRIANGLE_STRIP;
+    this._drawArraysOffset = 0;
+    this._drawArraysCount = 4;
   }
   
 }

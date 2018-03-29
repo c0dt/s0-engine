@@ -40,31 +40,7 @@ export default class Primitive {
       this._indicesComponentType = this._indices._componentType;
       this._indicesOffset = this._indices._byteOffset;
     }
-
-    // gl.bindVertexArray(null);
+    
     S0.isWebGL2 ? gl.bindVertexArray(null) : ext.bindVertexArrayOES(null);
-  }
-  
-  //@TODO 
-  draw(context) {
-    if (context.context.node.skin) {
-      this._material.skinUniformBlockID = context.context.node.skin.uniformBlockID;
-    }
-    context.useMaterial(this._material);
-
-    if (!this._vao && this._material.shader) {
-      this.prepare();
-      return;
-    }
-
-    if (this._vao && this._material.shader) {
-      context.bindVertexArray(this._vao);
-      if (this._indices !== null) {
-        context.drawElements(this._mode, this._indices._count, this._indices._componentType, this._indices._byteOffset);
-      } else {
-        context.drawArrays(this._mode, this._drawArraysOffset, this._drawArraysCount);
-      }
-    }
-
   }
 }

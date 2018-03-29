@@ -53,30 +53,30 @@ export default class DeferredRenderer extends Renderer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA16F,
-        this._viewWith,
-        this._viewHeight,
-        0,
-        gl.RGBA,
-        gl.FLOAT,
-        null
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA16F,
+      this._viewWith,
+      this._viewHeight,
+      0,
+      gl.RGBA,
+      gl.FLOAT,
+      null
     );
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._gPosition, 0);
 
     this._gNormal = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._gNormal);
     gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA16F,
-        this._viewWith,
-        this._viewHeight,
-        0,
-        gl.RGBA,
-        gl.FLOAT,
-        null
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA16F,
+      this._viewWith,
+      this._viewHeight,
+      0,
+      gl.RGBA,
+      gl.FLOAT,
+      null
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -87,15 +87,15 @@ export default class DeferredRenderer extends Renderer {
     this._gAlbedoSpec = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._gAlbedoSpec);
     gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        this._viewWith,
-        this._viewHeight,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        null
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      this._viewWith,
+      this._viewHeight,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      null
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -106,15 +106,15 @@ export default class DeferredRenderer extends Renderer {
     this._gMetallicRoughness = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._gMetallicRoughness);
     gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        this._viewWith,
-        this._viewHeight,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        null
+      gl.TEXTURE_2D,
+      0,
+      gl.RGBA,
+      this._viewWith,
+      this._viewHeight,
+      0,
+      gl.RGBA,
+      gl.UNSIGNED_BYTE,
+      null
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
@@ -125,15 +125,15 @@ export default class DeferredRenderer extends Renderer {
     this._depthTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
     gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.DEPTH_COMPONENT16,
-        this._viewWith,
-        this._viewHeight,
-        0,
-        gl.DEPTH_COMPONENT,
-        gl.UNSIGNED_SHORT,
-        null
+      gl.TEXTURE_2D,
+      0,
+      gl.DEPTH_COMPONENT16,
+      this._viewWith,
+      this._viewHeight,
+      0,
+      gl.DEPTH_COMPONENT,
+      gl.UNSIGNED_SHORT,
+      null
     );
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
@@ -243,7 +243,7 @@ export default class DeferredRenderer extends Renderer {
         }
         gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
         gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
-          // this._render(scene, this._items[index]);
+        // this._render(scene, this._items[index]);
       });
       this._skinnedNodes = [];
 
