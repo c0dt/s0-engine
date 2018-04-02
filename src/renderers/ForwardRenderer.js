@@ -41,9 +41,18 @@ export default class ForwardRenderer extends Renderer {
     this._shaderQuad = new Shader(vsQuad, fsQuad);
     this._shaderQuad.compile();
 
+    this._initBuffers();
+  }
 
+  _initBuffers() {
+    if (this._compositeBuffer) {
+      gl.deleteFramebuffer(this._compositeBuffer);
+    }
     this._compositeBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._compositeBuffer);
+    if (this._compositeTexture) {
+      gl.deleteTexture(this._compositeTexture);
+    }
     this._compositeTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
@@ -64,6 +73,9 @@ export default class ForwardRenderer extends Renderer {
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._compositeTexture, 0);
     gl.bindTexture(gl.TEXTURE_2D, null);
 
+    if (this._depthTexture) {
+      gl.deleteTexture(this._depthTexture);
+    }
     this._depthTexture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
     gl.texImage2D(
@@ -85,17 +97,26 @@ export default class ForwardRenderer extends Renderer {
     gl.bindTexture(gl.TEXTURE_2D, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
+    if (this._renderBuffer) {
+      gl.deleteFramebuffer(this._renderBuffer);
+    }
     this._renderBuffer = gl.createFramebuffer();
     gl.bindFramebuffer(gl.FRAMEBUFFER, this._renderBuffer);
-    let colorRendererBuffer = gl.createRenderbuffer();
-    gl.bindRenderbuffer(gl.RENDERBUFFER, colorRendererBuffer);
+    if (this._colorRendererBuffer) {
+      gl.deleteRenderbuffer(this._colorRendererBuffer);
+    }
+    this._colorRendererBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, this._colorRendererBuffer);
     gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, this._viewWith, this._viewHeight);  
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRendererBuffer);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this._colorRendererBuffer);
 
-    let depthRendererBuffer = gl.createRenderbuffer();
-    gl.bindRenderbuffer(gl.RENDERBUFFER, depthRendererBuffer);
+    if (this._depthRendererBuffer) {
+      gl.deleteRenderbuffer(this._depthRendererBuffer);
+    }
+    this._depthRendererBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, this._depthRendererBuffer);
     gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH_COMPONENT16, this._viewWith, this._viewHeight);  
-    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRendererBuffer);
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, this._depthRendererBuffer);
 
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -138,6 +159,7 @@ export default class ForwardRenderer extends Renderer {
     if (scenes.length && IBLManager.isReady) {
       gl.bindFramebuffer(gl.FRAMEBUFFER, this._renderBuffer);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+      gl.viewport(0, 0, this._viewWith, this._viewHeight);
       scenes.forEach((scene) => {
         let length = this._items.length;
         if (length === 0) {
@@ -201,6 +223,7 @@ export default class ForwardRenderer extends Renderer {
       );
 
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
       this._shaderQuad.use();
       this._shaderQuad.setInt("compositeTexture", 0);
       this._shaderQuad.set2fv("resolution", [this._viewWith, this._viewHeight]);
@@ -256,6 +279,7 @@ export default class ForwardRenderer extends Renderer {
     this._drawPrimitive(item.primitive, this);
   }
 
+  //@TODO
   _drawPrimitive(primitive, context) {
     if (context && context.context.node && context.context.node.skin) {
       primitive._material.skinUniformBlockID = context.context.node.skin.uniformBlockID;

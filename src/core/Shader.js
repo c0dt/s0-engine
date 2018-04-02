@@ -231,6 +231,11 @@ export default class Shader {
 
   //# helpers
 
+  /**
+   * 
+   * @param {string} type 
+   * @param {mat4} mat4 
+   */
   setMat4(type, mat4) {
     let location = this._uniformMap[type];
     if (location) {
@@ -238,6 +243,11 @@ export default class Shader {
     }
   }
 
+  /**
+   * 
+   * @param {string} type 
+   * @param {int} value 
+   */
   setInt(type, value) {
     let location = this._uniformMap[type];
     if (location) {
@@ -246,6 +256,11 @@ export default class Shader {
     
   }
 
+  /**
+   * 
+   * @param {string} type 
+   * @param {float} value 
+   */
   set1f(type, value) {
     let location = this._uniformMap[type];
     if (location) {
@@ -253,7 +268,11 @@ export default class Shader {
     }
   }
 
-
+  /**
+   * 
+   * @param {string} type 
+   * @param {vec2} value 
+   */
   set2fv(type, value) {
     let location = this._uniformMap[type];
     if (location) {
@@ -261,6 +280,11 @@ export default class Shader {
     }
   }
 
+  /**
+   * 
+   * @param {string} type 
+   * @param {vec4} value 
+   */
   set4fv(type, value) {
     let location = this._uniformMap[type];
     if (location) {
@@ -268,6 +292,11 @@ export default class Shader {
     }
   }
 
+  /**
+   * 
+   * @param {string} type 
+   * @param {vec3} value 
+   */
   set3fv(type, value) {
     let location = this._uniformMap[type];
     if (location) {
@@ -275,6 +304,11 @@ export default class Shader {
     }
   }
 
+  /**
+   * 
+   * @param {string} type 
+   * @param {int} value 
+   */
   setBlockIndex(type, value) {
     let location = this._uniformBlockIndices[type];
     if (location) {
