@@ -253,6 +253,14 @@ export default class Shader {
     }
   }
 
+
+  set2fv(type, value) {
+    let location = this._uniformMap[type];
+    if (location) {
+      gl.uniform2fv(location, value);
+    }
+  }
+
   set4fv(type, value) {
     let location = this._uniformMap[type];
     if (location) {

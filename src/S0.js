@@ -29,7 +29,7 @@ class S0 {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     document.body.appendChild(canvas);
-    let gl = canvas.getContext('webgl2', { antialias: true });
+    let gl = canvas.getContext('webgl2', { antialias: false });
     this.isWebGL2 = !!gl;
     if (!this.isWebGL2) {
       console.warn('WebGL 2 is not available.  See https://www.khronos.org/webgl/wiki/Getting_a_WebGL_Implementation How to get a WebGL 2 implementation');
@@ -89,7 +89,7 @@ class S0 {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     window.GameCanvas.width = window.innerWidth;
     window.GameCanvas.height = window.innerHeight;
-    if(this.projection){
+    if (this.projection) {
       mat4.perspective(this.projection, glm.radians(45.0), window.GameCanvas.width / window.GameCanvas.height, 0.1, 100000.0);
     }
   }

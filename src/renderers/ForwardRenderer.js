@@ -5,8 +5,8 @@ import Shader from '../core/Shader';
 import vsSkyBox from '../shaders/forward/cube-map.vs.glsl';
 import fsSkyBox from '../shaders/forward/cube-map.fs.glsl';
 
-import vsQuad from '../shaders/forward/color.vs.glsl';
-import fsQuad from '../shaders/forward/color.fs.glsl';
+import vsQuad from '../shaders/postprocessing.vs.glsl';
+import fsQuad from '../shaders/postprocessing.fs.glsl';
 
 import Cube from '../primitives/Cube';
 import Quad from '../primitives/Quad';
@@ -18,6 +18,7 @@ export default class ForwardRenderer extends Renderer {
     super(width, height);
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
+    gl.enable(gl.CULL_FACE);
     this.defaultSampler = gl.createSampler();
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -61,9 +62,48 @@ export default class ForwardRenderer extends Renderer {
       null
     );
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this._compositeTexture, 0);
+    gl.bindTexture(gl.TEXTURE_2D, null);
+
+    this._depthTexture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, this._depthTexture);
+    gl.texImage2D(
+      gl.TEXTURE_2D,
+      0,
+      gl.DEPTH_COMPONENT16,
+      this._viewWith,
+      this._viewHeight,
+      0,
+      gl.DEPTH_COMPONENT,
+      gl.UNSIGNED_SHORT,
+      null
+    );
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this._depthTexture, 0);
     gl.bindTexture(gl.TEXTURE_2D, null);
     gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    this._renderBuffer = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this._renderBuffer);
+    let colorRendererBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, colorRendererBuffer);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.RGBA8, this._viewWith, this._viewHeight);  
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, colorRendererBuffer);
+
+    let depthRendererBuffer = gl.createRenderbuffer();
+    gl.bindRenderbuffer(gl.RENDERBUFFER, depthRendererBuffer);
+    gl.renderbufferStorageMultisample(gl.RENDERBUFFER, 4, gl.DEPTH_COMPONENT16, this._viewWith, this._viewHeight);  
+    gl.framebufferRenderbuffer(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.RENDERBUFFER, depthRendererBuffer);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    if (gl.checkFramebufferStatus(gl.FRAMEBUFFER) !== gl.FRAMEBUFFER_COMPLETE) {
+      console.error("this combination of attachments does not work");
+    }
+
+    gl.bindRenderbuffer(gl.RENDERBUFFER, null);
   }
 
   activeAndBindTexture(textureInfo) {
@@ -94,11 +134,9 @@ export default class ForwardRenderer extends Renderer {
     gl.bindSampler(textureInfo.index, sampler);
   }
 
-  render(scenes, camera) {
-    gl.enable(gl.CULL_FACE);
+  render(scenes, camera) {    
     if (scenes.length && IBLManager.isReady) {
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this._compositeBuffer);
-      gl.enable(gl.DEPTH_TEST);
+      gl.bindFramebuffer(gl.FRAMEBUFFER, this._renderBuffer);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       scenes.forEach((scene) => {
         let length = this._items.length;
@@ -139,24 +177,34 @@ export default class ForwardRenderer extends Renderer {
         this._items = [];
       });
 
-      // gl.enable(gl.DEPTH_TEST);
-      // gl.depthFunc(gl.LEQUAL);
-      // let MVP = mat4.create();
-      // mat4.copy(MVP, camera.view);
-      // MVP[12] = 0.0;
-      // MVP[13] = 0.0;
-      // MVP[14] = 0.0;
-      // MVP[15] = 1.0;
-      // mat4.mul(MVP, camera.projection, MVP);
-      // this._shaderSkybox.use();
-      // this._shaderSkybox.setMat4('uMVP', MVP);
-      // this._shaderSkybox.setInt('u_environment', 0);
-      // gl.activeTexture(gl.TEXTURE0);
-      // gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
-      // this._drawPrimitive(this._cube, null);
+      let MVP = mat4.create();
+      mat4.copy(MVP, camera.view);
+      MVP[12] = 0.0;
+      MVP[13] = 0.0;
+      MVP[14] = 0.0;
+      MVP[15] = 1.0;
+      mat4.mul(MVP, camera.projection, MVP);
+      this._shaderSkybox.use();
+      this._shaderSkybox.setMat4('uMVP', MVP);
+      this._shaderSkybox.setInt('u_environment', 0);
+      gl.activeTexture(gl.TEXTURE0);
+      gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
+      this._drawPrimitive(this._cube, null);
+
+      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._renderBuffer);
+      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._compositeBuffer);
+
+      gl.blitFramebuffer(
+        0, 0, this._viewWith, this._viewHeight,
+        0, 0, this._viewWith, this._viewHeight,
+        gl.COLOR_BUFFER_BIT, gl.NEAREST
+      );
+
       gl.bindFramebuffer(gl.FRAMEBUFFER, null);
       this._shaderQuad.use();
       this._shaderQuad.setInt("compositeTexture", 0);
+      this._shaderQuad.set2fv("resolution", [this._viewWith, this._viewHeight]);
+      this._shaderQuad.set2fv("delta", [0, 0]);
       
       gl.activeTexture(gl.TEXTURE0);
       gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
