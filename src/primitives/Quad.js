@@ -11,10 +11,6 @@ export default class Quad {
 
 
   prepare() {
-    // S0.isWebGL2 ? gl.bindVertexArray(this.vertexArray) : ext.bindVertexArrayOES(this.vertexArray);
-    // gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
-    // S0.isWebGL2 ? gl.bindVertexArray(null) : ext.bindVertexArrayOES(null);
-
     this.vertexArray = S0.isWebGL2 ? gl.createVertexArray() : ext.createVertexArrayOES();
     this.vertexBuffer = gl.createBuffer();
     S0.isWebGL2 ? gl.bindVertexArray(this.vertexArray) : ext.bindVertexArray(this.vertexArray);

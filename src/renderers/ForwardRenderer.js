@@ -8,8 +8,12 @@ import fsSkyBox from '../shaders/forward/cube-map.fs.glsl';
 import vsQuad from '../shaders/postprocessing.vs.glsl';
 import fsQuad from '../shaders/postprocessing.fs.glsl';
 
+import vsBBOX from '../shaders/forward/axis.vs.glsl';
+import fsBBOX from '../shaders/forward/axis.fs.glsl';
+
 import Cube from '../primitives/Cube';
 import Quad from '../primitives/Quad';
+import Axis from '../primitives/Axis';
 
 import IBLManager from '../managers/IBLManager';
 
@@ -19,6 +23,7 @@ export default class ForwardRenderer extends Renderer {
     gl.enable(gl.DEPTH_TEST);
     gl.depthFunc(gl.LEQUAL);
     gl.enable(gl.CULL_FACE);
+
     this.defaultSampler = gl.createSampler();
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MIN_FILTER, gl.NEAREST_MIPMAP_LINEAR);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
@@ -29,6 +34,7 @@ export default class ForwardRenderer extends Renderer {
     gl.samplerParameterf(this.defaultSampler, gl.TEXTURE_MAX_LOD, 1000.0);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_MODE, gl.NONE);
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
+
     this._items = [];
 
     this._skinnedNodes = [];
@@ -40,6 +46,10 @@ export default class ForwardRenderer extends Renderer {
     this._testQuad = new Quad();
     this._shaderQuad = new Shader(vsQuad, fsQuad);
     this._shaderQuad.compile();
+
+    this._testAxis = new Axis();
+    this._shaderAxis = new Shader(vsBBOX, fsBBOX);
+    this._shaderAxis.compile();
 
     this._initBuffers();
   }
@@ -213,6 +223,29 @@ export default class ForwardRenderer extends Renderer {
       gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
       this._drawPrimitive(this._cube, null);
 
+      // for (let i = 0; i < 0; i++) {
+      //   gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._renderBuffer);
+      //   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._compositeBuffer);
+  
+      //   gl.blitFramebuffer(
+      //     0, 0, this._viewWith, this._viewHeight,
+      //     0, 0, this._viewWith, this._viewHeight,
+      //     gl.COLOR_BUFFER_BIT, gl.NEAREST
+      //   );
+  
+      //   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._renderBuffer);
+      //   gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._compositeBuffer);
+  
+      //   this._shaderQuad.use();
+      //   this._shaderQuad.setInt("compositeTexture", 0);
+      //   this._shaderQuad.set2fv("resolution", [this._viewWith, this._viewHeight]);
+      //   this._shaderQuad.set2fv("delta", [i * 100, i * 100]);
+        
+      //   gl.activeTexture(gl.TEXTURE0);
+      //   gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
+      //   this._drawPrimitive(this._testQuad, null);
+      // }
+
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._renderBuffer);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._compositeBuffer);
 
@@ -233,6 +266,9 @@ export default class ForwardRenderer extends Renderer {
       gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
       this._drawPrimitive(this._testQuad, null);
 
+      this._shaderAxis.use();
+      this._shaderAxis.setMat4("uMVP", MVP);
+      this._drawPrimitive(this._testAxis, null);
     }
   }
 

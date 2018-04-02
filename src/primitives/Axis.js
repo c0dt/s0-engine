@@ -1,7 +1,4 @@
-import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-
-import vsBBOX from '../shaders/forward/axis.vs.glsl';
-import fsBBOX from '../shaders/forward/axis.fs.glsl';
+import Shader from '../core/Shader';
 
 export default class Axis {
   constructor() {
@@ -15,14 +12,12 @@ export default class Axis {
       0.0, 0.0, 0.0, 0.0, 0.0, 1.0,
       0.0, 0.0, 1.0, 0.0, 0.0, 1.0,
     ]);
-        
+  }
+
+
+  prepare() {
     this.vertexArray = gl.createVertexArray();
     this.vertexBuffer = gl.createBuffer();
-    this.program = ShaderStatic.createProgram(gl, vsBBOX, fsBBOX);
-    this.positionLocation = 0;
-    this.colorLocation = 1;
-    this.uniformMvpLocation = 0;
-
     
     gl.bindVertexArray(this.vertexArray);
     
@@ -36,20 +31,11 @@ export default class Axis {
 
     gl.bindVertexArray(null);
 
-    gl.useProgram(this.program);
-    this.uniformMvpLocation = gl.getUniformLocation(this.program, "u_MVP");
-  }
-
-
-  draw(V, P) {
-    let MVP = mat4.create();
-    gl.useProgram(this.program);
-    mat4.mul(MVP, V, MVP);
-    mat4.mul(MVP, P, MVP);
-    gl.uniformMatrix4fv(this.uniformMvpLocation, false, MVP);
-    gl.bindVertexArray(this.vertexArray);
-    gl.drawArrays(gl.LINES, 0, 6);
-    gl.bindVertexArray(null);
+    this._vao = this.vertexArray;
+    this._indices = null;
+    this._mode = gl.LINES;
+    this._drawArraysOffset = 0;
+    this._drawArraysCount = 6;
   }
   
 }
