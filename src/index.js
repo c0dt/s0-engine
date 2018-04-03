@@ -17,3 +17,5 @@ export { default as Accessor } from './core/Accessor';
 export { default as BufferView } from './core/BufferView';
 
 export { default as Axis } from './primitives/Axis';
+export { default as Cube } from './primitives/Cube';
+export { default as Quad } from './primitives/Quad';

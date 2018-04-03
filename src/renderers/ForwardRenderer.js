@@ -36,6 +36,7 @@ export default class ForwardRenderer extends Renderer {
     gl.samplerParameteri(this.defaultSampler, gl.TEXTURE_COMPARE_FUNC, gl.LEQUAL);
 
     this._items = [];
+    this._renderableItems = [];
 
     this._skinnedNodes = [];
 
@@ -165,49 +166,63 @@ export default class ForwardRenderer extends Renderer {
     gl.bindSampler(textureInfo.index, sampler);
   }
 
-  render(scenes, camera) {    
-    if (scenes.length && IBLManager.isReady) {
+  //@TODO remove all renderering unrelated mess out of renderer class
+  render(scene, camera) {    
+    if (scene && IBLManager.isReady) {
+      
+      if(scene.needRevisit) {
+        this._items = [];
+        this._renderableItems = [];
+        this._skinnedNodes = [];
+        let hierarchy = scene.hierarchy;
+        hierarchy.forEach((node) => {
+          this._visitNode(node, mat4.create());
+        });
+        scene.needRevisit = false;
+      }
+
+      this._tmpMat4 = mat4.create();
+      this._inverseTransformMat4 = mat4.create();
+      this._skinnedNodes.forEach((node) => {
+        let skin = node.skin;
+        let joints = skin.joints;
+        mat4.invert(this._inverseTransformMat4, node.worldMatrix);
+        let jointsLength = skin.joints.length;
+        for (let i = 0; i < jointsLength; i++) {
+          let jointNode = joints[i].node;
+          mat4.mul(this._tmpMat4, jointNode.worldMatrix, skin.inverseBindMatrices[i]);
+          mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
+          skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
+        }
+        gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
+        gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
+      });
+
+      this.projection = camera.projection;
+      this.cameraPosition = camera.position;
+      this.view = camera.view;
+
       gl.bindFramebuffer(gl.FRAMEBUFFER, this._renderBuffer);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.viewport(0, 0, this._viewWith, this._viewHeight);
-      scenes.forEach((scene) => {
-        let length = this._items.length;
-        if (length === 0) {
-          let hierarchy = scene.hierarchy;
-          hierarchy.forEach((node) => {
-            this._visitNode(node, mat4.create());
-          });
+
+      let length = this._items.length;
+      for (let i = 0; i < length; i++) {
+        let item = this._items[i];
+        if (item.node.parent) {
+          mat4.multiply(item.node.worldMatrix, item.node.parent.worldMatrix, item.node.localMatrix);
+        } else {
+          mat4.copy(item.node.worldMatrix, item.node.localMatrix);
         }
-      
-        this._tmpMat4 = mat4.create();
-        this._inverseTransformMat4 = mat4.create();
-        this._skinnedNodes.forEach((node) => {
-          let skin = node.skin;
-          let joints = skin.joints;
-          mat4.invert(this._inverseTransformMat4, node.worldMatrix);
-          let jointsLength = skin.joints.length;
-          for (let i = 0; i < jointsLength; i++) {
-            let jointNode = joints[i].node;
-            mat4.mul(this._tmpMat4, jointNode.worldMatrix, skin.inverseBindMatrices[i]);
-            mat4.mul(this._tmpMat4, this._inverseTransformMat4, this._tmpMat4);
-            skin.jointMatrixUniformBufferData.set(this._tmpMat4, i * 16);
-          }
-          gl.bindBuffer(gl.UNIFORM_BUFFER, skin.jointMatrixUniformBuffer);
-          gl.bufferSubData(gl.UNIFORM_BUFFER, 0, skin.jointMatrixUniformBufferData, 0, skin.jointMatrixUniformBufferData.length);
-        });
-        this._skinnedNodes = [];
-        this.projection = camera.projection;
-        this.view = camera.view;
-        this.cameraPosition = camera.position;
-        length = this._items.length;
-      
-        if (length) {
-          for (let i = 0; i < length; i++) {
-            this._render(scene, this._items[i]);
-          }
+      }
+
+      length = this._renderableItems.length;
+      for (let i = 0; i < length; i++) {
+        let item = this._renderableItems[i];
+        if (item.primitive) {
+          this._render(item);
         }
-        this._items = [];
-      });
+      }
 
       let MVP = mat4.create();
       mat4.copy(MVP, camera.view);
@@ -274,21 +289,23 @@ export default class ForwardRenderer extends Renderer {
 
   //
   _visitNode(node, parentMatrix) {
-    mat4.multiply(node.worldMatrix, parentMatrix, node.localMatrix);
-
-    this._skinnedNodes;
-
     if (node.hasSkin()) {
       this._skinnedNodes.push(node);
     }
     
     if (node.mesh) {
       node.mesh.primitives.forEach((primitive) => {
-        this._items.push({ 
+        this._renderableItems.push({ 
           node: node,
           primitive: primitive, 
-          worldMatrix: node.worldMatrix
         });
+      });
+      this._items.push({ 
+        node: node
+      });
+    } else {
+      this._items.push({ 
+        node: node
       });
     }
     
@@ -300,15 +317,14 @@ export default class ForwardRenderer extends Renderer {
   }
 
   //@TODO 
-  _render(scene, item) {
-    let MV = mat4.mul(mat4.create(), this.view, item.worldMatrix);
+  _render(item) {
+    let MV = mat4.mul(mat4.create(), this.view, item.node.worldMatrix);
     let MVP = mat4.mul(mat4.create(), this.projection, MV);
     this.context = {
-      scene: scene,
       node: item.node,
       MVP: MVP,
       MV: MV,
-      M: item.worldMatrix,
+      M: item.node.worldMatrix,
       activeAndBindTexture: this.activeAndBindTexture,
       cameraPosition: this.cameraPosition
     };

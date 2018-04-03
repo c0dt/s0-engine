@@ -58,6 +58,10 @@ export default class Node {
     }
   }
 
+  get parent() {
+    return this._parent;
+  }
+
   get translation() {
     return this._translation;
   }
@@ -100,6 +104,7 @@ export default class Node {
   addChild(node) {
     let index = this._children.indexOf(node);
     if (index === -1) {
+      node._parent = this;
       this._children.push(node);
     }
   }
@@ -107,6 +112,7 @@ export default class Node {
   removeChild(node) {
     let index = this._children.indexOf(node);
     if (index > -1) {
+      node._parent = null;
       this._children.splice(index, 1);
     }
   }

@@ -131,7 +131,7 @@ class S0 {
 
 
   render() {
-    this.renderer.render(this._scenes, this._camera);
+    this.renderer.render(this._scenes[0], this._camera);
   }
 
   update(dt, t) {

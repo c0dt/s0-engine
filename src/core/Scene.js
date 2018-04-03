@@ -21,6 +21,7 @@ export default class Scene {
     this._materials = materials || [];
     this._skins = skins || [];
     this._animations = animations || [];
+    this._needRevisit = true;
   }
 
   get hierarchy() {
@@ -36,6 +37,15 @@ export default class Scene {
   }
 
   add(node) {
+    this._needRevisit = true;
     this._nodesHierarchy.push(node);
+  }
+
+  get needRevisit(){
+    return this._needRevisit;
+  }
+
+  set needRevisit(value) {
+    this._needRevisit = value;
   }
 }
