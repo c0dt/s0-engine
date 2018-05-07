@@ -16,6 +16,7 @@ import Quad from '../primitives/Quad';
 import Axis from '../primitives/Axis';
 
 import IBLManager from '../managers/IBLManager';
+import PostProcessingManager from '../managers/PostProcessingManager';
 
 export default class ForwardRenderer extends Renderer {
   constructor(width, height) {
@@ -170,7 +171,7 @@ export default class ForwardRenderer extends Renderer {
   render(scene, camera) {    
     if (scene && IBLManager.isReady) {
       
-      if(scene.needRevisit) {
+      if (scene.needRevisit) {
         this._items = [];
         this._renderableItems = [];
         this._skinnedNodes = [];
@@ -202,7 +203,9 @@ export default class ForwardRenderer extends Renderer {
       this.cameraPosition = camera.position;
       this.view = camera.view;
 
-      gl.bindFramebuffer(gl.FRAMEBUFFER, this._renderBuffer);
+      if (PostProcessingManager.activated) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this._renderBuffer);
+      }
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
       gl.viewport(0, 0, this._viewWith, this._viewHeight);
 
@@ -238,48 +241,33 @@ export default class ForwardRenderer extends Renderer {
       gl.bindTexture(gl.TEXTURE_CUBE_MAP, IBLManager.specularEnvSampler);
       this._drawPrimitive(this._cube, null);
 
-      // for (let i = 0; i < 0; i++) {
-      //   gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._renderBuffer);
-      //   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._compositeBuffer);
+      if (PostProcessingManager.activated) {
+        let length = PostProcessingManager.stack.length;
+        PostProcessingManager.stack.forEach((material, index) => {
+          gl.viewport(0, 0, this._viewWith, this._viewHeight);
+          gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._renderBuffer);
+          gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._compositeBuffer);
   
-      //   gl.blitFramebuffer(
-      //     0, 0, this._viewWith, this._viewHeight,
-      //     0, 0, this._viewWith, this._viewHeight,
-      //     gl.COLOR_BUFFER_BIT, gl.NEAREST
-      //   );
+          gl.blitFramebuffer(
+            0, 0, this._viewWith, this._viewHeight,
+            0, 0, this._viewWith, this._viewHeight,
+            gl.COLOR_BUFFER_BIT, gl.NEAREST
+          );
   
-      //   gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._renderBuffer);
-      //   gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._compositeBuffer);
-  
-      //   this._shaderQuad.use();
-      //   this._shaderQuad.setInt("compositeTexture", 0);
-      //   this._shaderQuad.set2fv("resolution", [this._viewWith, this._viewHeight]);
-      //   this._shaderQuad.set2fv("delta", [i * 100, i * 100]);
-        
-      //   gl.activeTexture(gl.TEXTURE0);
-      //   gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
-      //   this._drawPrimitive(this._testQuad, null);
-      // }
+          if (index === length - 1) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+          } else {
+            gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._renderBuffer);
+            gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._compositeBuffer);
+          }
+          
+          gl.viewport(0, 0, this._viewWith, this._viewHeight);
 
-      gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._renderBuffer);
-      gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, this._compositeBuffer);
-
-      gl.blitFramebuffer(
-        0, 0, this._viewWith, this._viewHeight,
-        0, 0, this._viewWith, this._viewHeight,
-        gl.COLOR_BUFFER_BIT, gl.NEAREST
-      );
-
-      gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-
-      this._shaderQuad.use();
-      this._shaderQuad.setInt("compositeTexture", 0);
-      this._shaderQuad.set2fv("resolution", [this._viewWith, this._viewHeight]);
-      this._shaderQuad.set2fv("delta", [0, 0]);
-      
-      gl.activeTexture(gl.TEXTURE0);
-      gl.bindTexture(gl.TEXTURE_2D, this._compositeTexture);
-      this._drawPrimitive(this._testQuad, null);
+          material.compositeTexture = this._compositeTexture;
+          material.use(this.context);
+          this._drawPrimitive(this._testQuad, null);
+        });
+      }
 
       this._shaderAxis.use();
       this._shaderAxis.setMat4("uMVP", MVP);
@@ -326,7 +314,9 @@ export default class ForwardRenderer extends Renderer {
       MV: MV,
       M: item.node.worldMatrix,
       activeAndBindTexture: this.activeAndBindTexture,
-      cameraPosition: this.cameraPosition
+      cameraPosition: this.cameraPosition,
+      viewWith: this._viewWith,
+      viewHeight: this._viewHeight
     };
     this._drawPrimitive(item.primitive, this);
   }
