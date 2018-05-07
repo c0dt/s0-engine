@@ -5,7 +5,7 @@ export default class TextureLoader extends ImageLoader {
   _decode(rawData) {
     return Promise.resolve(new Texture({
       name: this.item.name, 
-      source: rawData }
-    ));
+      source: rawData 
+    }));
   }
 }
