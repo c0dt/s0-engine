@@ -1,8 +1,8 @@
 export default class Cubemap {
   constructor({
-      right, left, top, bottom, front, back,
-      facesize,
-      mipmaps = true,
+    right, left, top, bottom, front, back,
+    facesize,
+    mipmaps = true,
   }) {
     this._right = right;
     this._left = left;

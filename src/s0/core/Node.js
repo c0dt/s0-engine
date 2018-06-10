@@ -1,6 +1,4 @@
-import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-// import ObjectFactory from './ObjectFactory';
-import ComponentManager from '../managers/ComponentManager';
+import { vec3, quat, mat4 } from 'gl-matrix';
 
 
 export default class Node {
@@ -39,12 +37,12 @@ export default class Node {
   }
 
   postprocess(context) {
-    this._mesh = context.meshes[this._mesh];
-    this._skin = context.skins[this._skin];
-    this._components.forEach((component) => {
-      ComponentManager.add(component);
-      component.__onload();
-    });
+    // this._mesh = context.meshes[this._mesh];
+    // this._skin = context.skins[this._skin];
+    // this._components.forEach((component) => {
+    //   ComponentManager.add(component);
+    //   component.__onload();
+    // });
   }
 
   set parent(value) {

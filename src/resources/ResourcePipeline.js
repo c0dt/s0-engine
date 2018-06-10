@@ -4,6 +4,8 @@ import GLTFLoader from './loaders/GLTFLoader';
 import GLTFBufferLoader from './loaders/GLTFBufferLoader';
 import ImageLoader from './loaders/ImageLoader';
 import AudioLoader from './loaders/AudioLoader';
+import MetalShaderLoader from './loaders/MetalShaderLoader';
+import GLSLShaderLoader from './loaders/GLSLShaderLoader';
 
 class ResourcePipeline {
 
@@ -14,7 +16,9 @@ class ResourcePipeline {
       "jpg": ImageLoader,
       "png": ImageLoader,
       "gif": ImageLoader,
-      "mp3": AudioLoader
+      "mp3": AudioLoader,
+      "metal": MetalShaderLoader,
+      "glsl": GLSLShaderLoader
     };  
   }
 

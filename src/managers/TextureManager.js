@@ -4,16 +4,16 @@ class TextureManager {
     this._textures = {};
   }
     
-  get(id){
+  get(id) {
     return this._textures[id];
   }
     
-  add(texture){
+  add(texture) {
     let id = texture.id;
     this._textures[id] = texture;
   }
         
-    }
+}
     
 const _instance = new TextureManager;
     

@@ -8,7 +8,7 @@ export { default as TextureLoader } from './resources/loaders/TextureLoader';
 
 export { default as S0 } from './S0';
 
-
+export { default as Camera } from './core/Camera';
 export { default as Scene } from './core/Scene';
 export { default as Shader } from './core/Shader';
 export { default as Material } from './core/Material';
@@ -21,3 +21,11 @@ export { default as BufferView } from './core/BufferView';
 export { default as Axis } from './primitives/Axis';
 export { default as Cube } from './primitives/Cube';
 export { default as Quad } from './primitives/Quad';
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+export { default as Engine } from './s0/Engine';
+export { glm } from './glm';
+
+////////////////////////////////////////////////////////////////////////////////////////////////////

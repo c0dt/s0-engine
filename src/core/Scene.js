@@ -1,6 +1,3 @@
-import { vec3, vec4, quat, mat4 } from 'gl-matrix';
-import Node from './Node';
-
 export default class Scene {
   constructor({ buffers, 
     bufferViews, 
@@ -41,7 +38,7 @@ export default class Scene {
     this._nodesHierarchy.push(node);
   }
 
-  get needRevisit(){
+  get needRevisit() {
     return this._needRevisit;
   }
 
