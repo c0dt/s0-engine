@@ -2,12 +2,12 @@ import { Type2NumOfComponent, ComponentType2ArrayType, ComponentType2ByteSize } 
 
 export default class Accessor {
   constructor({ bufferView, 
-                byteOffset, 
-                componentType, 
-                normalized,
-                count, 
-                max, min, 
-                type }) {
+    byteOffset, 
+    componentType, 
+    normalized,
+    count, 
+    max, min, 
+    type }) {
     this._bufferView = bufferView;
     this._byteOffset = byteOffset || 0;
     this._byteStride = bufferView.byteStride;

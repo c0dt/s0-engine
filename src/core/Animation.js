@@ -1,7 +1,7 @@
 import { vec4, quat } from "gl-matrix";
 
 export class AnimationSampler {
-    /**
+  /**
      * 
      * @param {*} input 
      * @param {*} output 

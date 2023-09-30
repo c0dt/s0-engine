@@ -5,7 +5,7 @@ export const ComponentType2ByteSize = {
   5121: 1, // UNSIGNED_BYTE
   5122: 2, // SHORT
   5123: 2, // UNSIGNED_SHORT
-  5126: 4  // FLOAT
+  5126: 4 // FLOAT
 };
   
 export const ComponentType2ArrayType = {
@@ -13,7 +13,7 @@ export const ComponentType2ArrayType = {
   5121: Uint8Array, // UNSIGNED_BYTE
   5122: Int16Array, // SHORT
   5123: Uint16Array, // UNSIGNED_SHORT
-  5126: Float32Array  // FLOAT
+  5126: Float32Array // FLOAT
 };
   
 export const Type2NumOfComponent = {
