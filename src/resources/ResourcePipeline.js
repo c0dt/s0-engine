@@ -4,12 +4,14 @@ import GLTFLoader from './loaders/GLTFLoader';
 import GLTFBufferLoader from './loaders/GLTFBufferLoader';
 import ImageLoader from './loaders/ImageLoader';
 import AudioLoader from './loaders/AudioLoader';
+import VRMLoader from './loaders/VRMLoader';
 
 class ResourcePipeline {
 
   constructor() {
     this._loaders = {
       "gltf": GLTFLoader,
+      "vrm": VRMLoader,
       "bin": GLTFBufferLoader,
       "jpg": ImageLoader,
       "png": ImageLoader,
