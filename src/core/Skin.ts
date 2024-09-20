@@ -1,11 +1,24 @@
 import { mat4 } from "gl-matrix";
 import S0 from '../S0';
+import RenderingContextObject from "./RenderingContextObject";
+import Accessor from "./Accessor";
 
 const NUM_MAX_JOINTS = 65;
 let UniformBlockIDCounter = 0;
 
-export default class Skin {
-  constructor({ inverseBindMatrices, joints, skeleton }) {
+export default class Skin extends RenderingContextObject {
+  private _inverseBindMatrices: Accessor;
+  private _joints: any;
+  private _skeleton: any;
+  private _uniformBlockID: number;
+  private _inverseBindMatricesData: any;
+  private _inverseBindMatrix: mat4[] = [];
+  private _jointMatrixUniformBufferData: AllowSharedBufferSource | undefined;
+  private _jointMatrixUniformBuffer: WebGLBuffer | null;
+  constructor(params:{ inverseBindMatrices:Accessor, joints:any, skeleton:any }) {
+    super();
+    const { inverseBindMatrices, joints, skeleton } = params;
+
     this._inverseBindMatrices = inverseBindMatrices;
     this._joints = joints;
     this._skeleton = skeleton;
@@ -41,14 +54,19 @@ export default class Skin {
     }
 
 
-    this._jointMatrixUniformBuffer = gl.createBuffer();
+    this._jointMatrixUniformBuffer = this.RenderingContext.createBuffer();
 
     if (S0.isWebGL2) {
-      gl.bindBufferBase(gl.UNIFORM_BUFFER, this._uniformBlockID, this._jointMatrixUniformBuffer);
-      gl.bindBuffer(gl.UNIFORM_BUFFER, this._jointMatrixUniformBuffer);
-      gl.bufferData(gl.UNIFORM_BUFFER, this._jointMatrixUniformBufferData, gl.DYNAMIC_DRAW);
-      gl.bufferSubData(gl.UNIFORM_BUFFER, 0, this._jointMatrixUniformBufferData);
-      gl.bindBuffer(gl.UNIFORM_BUFFER, null);
+      //@ts-ignore
+      this.RenderingContext.bindBufferBase(this.RenderingContext.UNIFORM_BUFFER, this._uniformBlockID, this._jointMatrixUniformBuffer);
+      //@ts-ignore
+      this.RenderingContext.bindBuffer(this.RenderingContext.UNIFORM_BUFFER, this._jointMatrixUniformBuffer);
+      //@ts-ignore
+      this.RenderingContext.bufferData(this.RenderingContext.UNIFORM_BUFFER, this._jointMatrixUniformBufferData, this.RenderingContext.DYNAMIC_DRAW);
+      //@ts-ignore
+      this.RenderingContext.bufferSubData(this.RenderingContext.UNIFORM_BUFFER, 0, this._jointMatrixUniformBufferData);
+      //@ts-ignore
+      this.RenderingContext.bindBuffer(this.RenderingContext.UNIFORM_BUFFER, null);
     }
   }
 

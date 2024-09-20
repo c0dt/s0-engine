@@ -14,6 +14,7 @@ export default class ImageLoader extends Loader {
         });
       };
       img.onerror = (error) => {
+        console.error(error);
         reject(error);
       };
     });

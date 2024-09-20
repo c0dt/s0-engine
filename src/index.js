@@ -7,7 +7,6 @@ export { default as TextureLoader } from './resources/loaders/TextureLoader';
 
 export { default as S0 } from './S0';
 
-
 export { default as Scene } from './core/Scene';
 export { default as Shader } from './core/Shader';
 export { default as Material } from './core/Material';

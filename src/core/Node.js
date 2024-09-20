@@ -10,6 +10,7 @@ export default class Node {
    * @param {String} id 
    */
   constructor({ name, translation, rotation, scale, skin, mesh, children, extras } = {}, id) {
+    console.log(children);
     this._id = id;
     this._components = [];
     this._name = name;

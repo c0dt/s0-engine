@@ -1,13 +1,37 @@
+import BufferView from "./BufferView";
+import RenderingContextObject from "./RenderingContextObject";
 import { Type2NumOfComponent, ComponentType2ArrayType, ComponentType2ByteSize } from "./Utils";
 
-export default class Accessor {
-  constructor({ bufferView, 
-    byteOffset, 
-    componentType, 
-    normalized,
-    count, 
-    max, min, 
-    type }) {
+export default class Accessor extends RenderingContextObject {
+  
+  private _bufferView: BufferView;
+  private _byteOffset: number;
+  private _byteStride: number;
+  private _componentType: number;
+  private _normalized: boolean;
+  private _count: number;
+  private _max: number;
+  private _min: number;
+  private _type: string;
+  private _size: any;
+  private _data: AllowSharedBufferSource | null = null;
+  private _buffer: WebGLBuffer | null = null;
+
+  constructor(params: { bufferView:BufferView , 
+    byteOffset:number, 
+    componentType:number, 
+    normalized:boolean,
+    count:number, 
+    max:number, min:number, 
+    type:string }) {
+    super();
+    const { bufferView, 
+      byteOffset, 
+      componentType, 
+      normalized,
+      count, 
+      max, min, 
+      type } = params;
     this._bufferView = bufferView;
     this._byteOffset = byteOffset || 0;
     this._byteStride = bufferView.byteStride;
@@ -32,28 +56,28 @@ export default class Accessor {
   }
 
   createBuffer() {
-    this._buffer = gl.createBuffer();
+    this._buffer = this.RenderingContext.createBuffer();
   }
 
   bindData() {
     let target = this._bufferView.target;
     if (target) {
-      gl.bindBuffer(target, this._buffer);
-      gl.bufferData(target, this._data, gl.STATIC_DRAW);
+      this.RenderingContext.bindBuffer(target, this._buffer);
+      this.RenderingContext.bufferData(target, this._data, this.RenderingContext.STATIC_DRAW);
       return true;
     }
     return false;
   }
 
-  prepareVertexAttrib(location) {
+  prepareVertexAttrib(location:number) {
     if (location >= 0) {
-      gl.vertexAttribPointer(location,
+      this.RenderingContext.vertexAttribPointer(location,
         this._size,
         this._componentType,
         this._normalized,
         this._byteStride,
         this._byteOffset);
-      gl.enableVertexAttribArray(location); 
+        this.RenderingContext.enableVertexAttribArray(location); 
     }
   }
 

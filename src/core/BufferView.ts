@@ -1,8 +1,19 @@
+import Buffer from "./Buffer";
 export default class BufferView {
-  constructor({ buffer, 
-    byteLength, byteOffset, byteStride, 
-    target, extensions, extras }) {
-
+  private _byteLength: number;
+  private _byteOffset: number;
+  private _byteStride: number;
+  private _target: any;
+  private _extensions: any;
+  private _extras: any;
+  private _buffer: Buffer;
+  constructor(params:{ buffer: Buffer, 
+    byteLength:number, byteOffset:number, byteStride:number, 
+    target:any, extensions:any, extras:any }) {
+    const { buffer, 
+      byteLength, byteOffset, byteStride, 
+      target, extensions, extras } = params;
+      
     this._byteLength = byteLength;
     this._byteOffset = byteOffset !== undefined ? byteOffset : 0;
     this._byteStride = byteStride !== undefined ? byteStride : 0;
@@ -39,5 +50,9 @@ export default class BufferView {
 
   get buffer() {
     return this._buffer.data;
+  }
+
+  get data() {
+    return this._buffer.data.slice(this.byteOffset, this.byteLength + this.byteOffset);
   }
 }

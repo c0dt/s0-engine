@@ -42,7 +42,7 @@ class ResourcePipeline {
     return loader.loadAsync();
   }
 
-  loadAllAsync(urls, { lname: name, oaderClass: loaderClass } = {}) {
+  loadAllAsync(urls, { lname: name, loaderClass: loaderClass } = {}) {
     let items = [];
     let promises = [];
     urls.forEach((url) => {
@@ -59,6 +59,31 @@ class ResourcePipeline {
       });
       return dataList;
     });
+  }
+
+  loadAllAsyncForceType(resOptions) {
+    let items = [];
+    let promises = [];
+    resOptions.forEach((resOption) => {
+      let item = new ResourceItem(resOption);
+      items.push(item);
+      let loader = this.getLoader(item);
+      promises.push(loader.loadAsync());
+    });
+
+    return Promise.all(promises).then(() => {
+      let dataList = [];
+      items.forEach((item) => {
+        dataList.push(item.data);
+      });
+      return dataList;
+    });
+  }
+
+  loadAsyncForceType(name, url, type) {
+    let item = new ResourceItem({ name: name, url: url, type:type });
+    let loader = this.getLoader(item);
+    return loader.loadAsync();
   }
 
   getLoader(item) {
